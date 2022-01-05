@@ -5,6 +5,7 @@ import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import { Form } from '../Form';
+import { locale } from '../../../utilities/locale';
 
 fetch.enableMocks();
 
@@ -166,7 +167,10 @@ describe('<Form />', () => {
       ).toBeInTheDocument();
       expect(getByTestId('article-form__body')).toBeInTheDocument();
 
-      const coverImageInput = getByLabelText('Change', { exact: false });
+      const coverImageInput = getByLabelText(
+        locale('views.editor.cover_image.change'),
+        { exact: false }
+      );
 
       // Allow any image format
       expect(coverImageInput.getAttribute('accept')).toEqual('image/*');

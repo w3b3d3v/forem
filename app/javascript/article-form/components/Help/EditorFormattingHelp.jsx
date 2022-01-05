@@ -1,21 +1,24 @@
 import { h } from 'preact';
 import PropTypes from 'prop-types';
+import { locale } from '../../../utilities/locale';
 
 export const EditorFormattingHelp = ({ openModal }) => (
   <div
     data-testid="format-help"
     className="crayons-article-form__help crayons-article-form__help--body"
   >
-    <h4 className="mb-2 fs-l">Editor Basics</h4>
+    <h4 className="mb-2 fs-l">{locale('views.editor.help.editor.title')}</h4>
     <ul className="list-disc pl-6 color-base-70">
       <li>
-        Use{' '}
+        {locale('views.editor.help.editor.use')}{' '}
         <a href="#markdown" onClick={() => openModal('markdownShowing')}>
           Markdown
         </a>{' '}
-        to write and format posts.
+        {locale('views.editor.help.editor.to_write')}
         <details className="fs-s my-1">
-          <summary class="cursor-pointer">Commonly used syntax</summary>
+          <summary class="cursor-pointer">
+            {locale('views.editor.help.editor.common')}
+          </summary>
           <table className="crayons-card crayons-card--secondary crayons-table crayons-table--compact w-100 mt-2 mb-4 lh-tight">
             <tbody>
               <tr>
@@ -108,17 +111,13 @@ export const EditorFormattingHelp = ({ openModal }) => (
         </details>
       </li>
       <li>
-        Embed rich content such as Tweets, YouTube videos, etc. Use the complete
-        URL: <code>{'{% embed https://... %}.'}</code>{' '}
+        {locale('views.editor.help.editor.can_use')}{' '}
         <a href="#liquid" onClick={() => openModal('liquidShowing')}>
-          See a list of supported embeds
-        </a>
-        .
+          Liquid tags
+        </a>{' '}
+        {locale('views.editor.help.editor.rich_content')}{' '}
       </li>
-      <li>
-        In addition to images for the post's content, you can also drag and drop
-        a cover image.
-      </li>
+      <li>{locale('views.editor.help.editor.in_addition')}</li>
     </ul>
   </div>
 );

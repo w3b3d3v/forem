@@ -1,6 +1,7 @@
 import { h } from 'preact';
 import moment from 'moment';
 import PropTypes from 'prop-types';
+import { locale } from '../../utilities/locale';
 import { Options } from './Options';
 import { ButtonNew as Button } from '@crayons';
 
@@ -32,8 +33,10 @@ export const EditorActions = ({
           disabled
         >
           {published && isVersion2
-            ? 'Publishing...'
-            : `Saving ${isVersion2 ? 'draft' : ''}...`}
+            ? locale('views.editor.actions.publishing')
+            : `${locale('views.editor.actions.saving')} ${
+                isVersion2 ? locale('views.editor.actions.draft') : ''
+              }...`}
         </Button>
       </div>
     );
@@ -48,15 +51,15 @@ export const EditorActions = ({
 
   let saveButtonText;
   if (isVersion1) {
-    saveButtonText = 'Save changes';
+    saveButtonText = locale('views.editor.actions.save');
   } else if (schedule) {
-    saveButtonText = 'Schedule';
+    saveButtonText = locale('views.editor.actions.schedule');
   } else if (wasScheduled || !published) {
     // if the article was saved as scheduled, and the user clears publishedAt in the post options, the save button text is changed to "Publish"
     // to make it clear that the article is going to be published right away
-    saveButtonText = 'Publish';
+    saveButtonText = locale('views.editor.actions.publish');
   } else {
-    saveButtonText = 'Save changes';
+    saveButtonText = locale('views.editor.actions.save');
   }
 
   return (
@@ -76,7 +79,10 @@ export const EditorActions = ({
           onClick={onSaveDraft}
           disabled={previewLoading}
         >
-          Save <span className="hidden s:inline">draft</span>
+          {locale('views.editor.actions.save')}{' '}
+          <span className="hidden s:inline">
+            {locale('views.editor.actions.draft')}
+          </span>
         </Button>
       )}
 
@@ -96,7 +102,10 @@ export const EditorActions = ({
           className="whitespace-nowrap fw-normal fs-s"
           disabled={previewLoading}
         >
-          Revert <span className="hidden s:inline">new changes</span>
+          {locale('views.editor.actions.revert')}{' '}
+          <span className="hidden s:inline">
+            {locale('views.editor.actions.changes')}
+          </span>
         </Button>
       )}
     </div>

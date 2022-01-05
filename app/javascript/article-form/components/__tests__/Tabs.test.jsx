@@ -3,6 +3,7 @@ import { render } from '@testing-library/preact';
 import { axe } from 'jest-axe';
 import { Tabs } from '../Tabs';
 import '@testing-library/jest-dom';
+import { locale } from '../../../utilities/locale';
 
 describe('<Tabs />', () => {
   it('should have no a11y violations', async () => {
@@ -19,8 +20,12 @@ describe('<Tabs />', () => {
       <Tabs onPreview={null} previewShowing={false} />,
     );
 
-    expect(getByRole('button', { name: /preview/i })).toBeInTheDocument();
-    expect(getByRole('button', { name: /edit/i })).toBeInTheDocument();
+    expect(
+      queryByText(locale('views.editor.preview'), { selector: 'button' }),
+    ).toBeDefined();
+    expect(
+      queryByText(locale('views.editor.edit'), { selector: 'button' }),
+    ).toBeDefined();
   });
 
   describe('highlights the current tab', () => {
@@ -30,14 +35,14 @@ describe('<Tabs />', () => {
       );
 
       expect(
-        getByRole('button', { name: /preview/i }).classList.contains(
-          `crayons-tabs__item--current`,
-        ),
+        getByText(locale('views.editor.preview'), {
+          selector: 'button',
+        }).classList.contains(`crayons-tabs__item--current`),
       ).toEqual(true);
       expect(
-        getByRole('button', { name: /edit/i }).classList.contains(
-          `crayons-tabs__item--current`,
-        ),
+        getByText(locale('views.editor.edit'), {
+          selector: 'button',
+        }).classList.contains(`crayons-tabs__item--current`),
       ).toEqual(false);
     });
 
@@ -47,14 +52,14 @@ describe('<Tabs />', () => {
       );
 
       expect(
-        getByRole('button', { name: /edit/i }).classList.contains(
-          `crayons-tabs__item--current`,
-        ),
+        getByText(locale('views.editor.edit'), {
+          selector: 'button',
+        }).classList.contains(`crayons-tabs__item--current`),
       ).toEqual(true);
       expect(
-        getByRole('button', { name: /preview/i }).classList.contains(
-          `crayons-tabs__item--current`,
-        ),
+        getByText(locale('views.editor.preview'), {
+          selector: 'button',
+        }).classList.contains(`crayons-tabs__item--current`),
       ).toEqual(false);
     });
 
@@ -64,14 +69,14 @@ describe('<Tabs />', () => {
       );
 
       expect(
-        getByRole('button', { name: /edit/i }).classList.contains(
-          `crayons-tabs__item--current`,
-        ),
+        getByText(locale('views.editor.edit'), {
+          selector: 'button',
+        }).classList.contains(`crayons-tabs__item--current`),
       ).toEqual(false);
       expect(
-        getByRole('button', { name: /preview/i }).classList.contains(
-          `crayons-tabs__item--current`,
-        ),
+        getByText(locale('views.editor.preview'), {
+          selector: 'button',
+        }).classList.contains(`crayons-tabs__item--current`),
       ).toEqual(true);
     });
   });
