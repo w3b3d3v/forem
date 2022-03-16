@@ -32,6 +32,11 @@
           <a href="<%= new_path %>" class="c-cta c-cta--branded mr-2 whitespace-nowrap"><%= t("views.main.create_post") %></a>
 
           <span class="trusted-visible-block">
+            <a id="connect-mm-button" class="c-link c-link--icon-alone c-link--block mx-1" aria-label="<%= t("views.main.header.moderation.aria_label") %>" href="#<% mod_path %>">
+              <%= crayons_icon_tag(:metamask, native: true) %>
+            </a>
+          </span>
+          <span class="trusted-visible-block">
             <a id="moderation-link" class="c-link c-link--icon-alone c-link--block mx-1" aria-label="<%= t("views.main.header.moderation.aria_label") %>" href="<%= mod_path %>">
               <%= crayons_icon_tag(:mod, title: t("views.main.header.moderation.icon")) %>
             </a>
