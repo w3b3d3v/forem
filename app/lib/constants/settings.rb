@@ -8,6 +8,7 @@ module Constants
       Billing
       Organization
       Extensions
+      Metamask
     ].freeze
   end
 end
