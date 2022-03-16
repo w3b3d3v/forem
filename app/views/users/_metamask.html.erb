@@ -1,0 +1,18 @@
+  <div class="crayons-card crayons-card--content-rows">
+    <h2 class="crayons-subtitle-1">
+      <%= t("views.settings.custom.metamask") %>
+    </h2>
+    <div class="crayons-field">
+      <div class="theme-selector-field grid grid-cols-5">
+      </div>
+      <p>
+        <%= t("views.settings.custom.metamask_description") %>
+      </p>
+      <p><Se conectado exibir numero da carteira></p>
+      <div>
+      <%= javascript_packs_with_chunks_tag "connectMetamask" %>
+      <button id="connect-mm-button" class='crayons-btn crayons-btn--bg'>Connect</button>
+      <button class='crayons-btn crayons-btn--bg'>Change Wallet</button>
+      </div>
+    </div>
+  </div>
