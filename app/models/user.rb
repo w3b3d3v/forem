@@ -111,6 +111,8 @@ class User < ApplicationRecord
   has_many :tweets, dependent: :nullify
   has_many :devices, dependent: :delete_all
 
+  has_many :wallets, dependent: :delete_all
+
   mount_uploader :profile_image, ProfileImageUploader
 
   devise :invitable, :omniauthable, :registerable, :database_authenticatable, :confirmable, :rememberable,

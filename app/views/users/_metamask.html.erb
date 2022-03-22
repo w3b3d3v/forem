@@ -8,11 +8,26 @@
       <p>
         <%= t("views.settings.custom.metamask_description") %>
       </p>
-      <p><Se conectado exibir numero da carteira></p>
+      <span id='wallet_addresses'>
+        <% if @user.wallets.any? %>
+          <h2>Carteiras:</h2>
+            <% @user.wallets.each do |wallet| %>
+            <p>
+              <%= wallet.address %>
+            </p>
+              <div>
+                <button id="<%= wallet.address %>" class='crayons-btn crayons-btn--bg connect-mm-button mm-delete-button'>Delete</button>
+              </div>
+            <% end %>
+        <% else %>
+          <div>
+            <button class='crayons-btn crayons-btn--bg connect-mm-button mm-connect-button'>Connect</button>
+          </div>
+        <% end %>
+      </span>
       <div>
-      <%= javascript_packs_with_chunks_tag "connectMetamask" %>
-      <button id="connect-mm-button" class='crayons-btn crayons-btn--bg'>Connect</button>
-      <button class='crayons-btn crayons-btn--bg'>Change Wallet</button>
+        <%= javascript_packs_with_chunks_tag "connectMetamask" %>
+        <button class='crayons-btn crayons-btn--bg'>Change Wallet</button>
       </div>
     </div>
   </div>
