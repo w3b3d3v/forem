@@ -204,6 +204,8 @@ Rails.application.routes.draw do
     post "users/api_secrets", to: "api_secrets#create", as: :users_api_secrets
     delete "users/api_secrets/:id", to: "api_secrets#destroy", as: :users_api_secret
     post "users/update_password", to: "users#update_password", as: :user_update_password
+    post "users/connect_wallet", to: "users#connect_wallet", as: :user_connect_wallet
+    delete "users/delete_wallet", to: "users#delete_wallet", as: :user_delete_wallet
 
     # The priority is based upon order of creation: first created -> highest priority.
     # See how all your routes lay out with "rake routes".
