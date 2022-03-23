@@ -10,7 +10,7 @@
       </p>
       <span id='wallet_addresses'>
         <% if @user.wallets.any? %>
-          <h2>Carteiras:</h2>
+          <h2><%= t("views.settings.wallet.wallets") %>:</h2>
             <% @user.wallets.each do |wallet| %>
             <p id='wallet_address_paragraph'>
               <%= wallet.address %>
@@ -22,10 +22,10 @@
           <%= javascript_packs_with_chunks_tag "connectMetamask" %>
           <div>
             <button class='crayons-btn crayons-btn--bg delete-wallet' style="display: <%= @user.wallets.any? ? "block" : "none" %>">
-              Delete Wallet
+               <%= t("views.settings.wallet.delete_wallet") %>
             </button>
             <button class='crayons-btn crayons-btn--bg connect-wallet' style="display: <%= @user.wallets.any? ? "none" : "block" %>">
-              Connect Wallet
+              <%= t("views.settings.wallet.connect_wallet") %>
             </button>
           </div>
         </div>

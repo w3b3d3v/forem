@@ -280,3 +280,7 @@ en:
         Extensions: Extensions
         Metamask: Metamask
       save_profile: Save Profile Information
+      wallet:
+        connect_wallet: Connect Wallet
+        delete_wallet: Delete Wallet
+        wallets: Wallets
