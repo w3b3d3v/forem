@@ -45,7 +45,7 @@ const connectWallet = async () => {
       const h2 = document.createElement('h2');
       const p = document.createElement('p');
       p.setAttribute('id', 'wallet_address_paragraph');
-      h2.innerHTML = 'Wallets:';
+      h2.innerHTML = 'Wallet:';
       span.appendChild(h2);
       p.innerHTML = data.address;
       span.appendChild(p);
