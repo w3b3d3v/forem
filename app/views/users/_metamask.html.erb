@@ -12,22 +12,22 @@
         <% if @user.wallets.any? %>
           <h2>Carteiras:</h2>
             <% @user.wallets.each do |wallet| %>
-            <p>
+            <p id='wallet_address_paragraph'>
               <%= wallet.address %>
             </p>
-              <div>
-                <button id="<%= wallet.address %>" class='crayons-btn crayons-btn--bg connect-mm-button mm-delete-button'>Delete</button>
-              </div>
             <% end %>
-        <% else %>
-          <div>
-            <button class='crayons-btn crayons-btn--bg connect-mm-button mm-connect-button'>Connect</button>
-          </div>
         <% end %>
       </span>
-      <div>
-        <%= javascript_packs_with_chunks_tag "connectMetamask" %>
-        <button class='crayons-btn crayons-btn--bg'>Change Wallet</button>
-      </div>
+        <div>
+          <%= javascript_packs_with_chunks_tag "connectMetamask" %>
+          <div>
+            <button class='crayons-btn crayons-btn--bg delete-wallet' style="display: <%= @user.wallets.any? ? "block" : "none" %>">
+              Delete Wallet
+            </button>
+            <button class='crayons-btn crayons-btn--bg connect-wallet' style="display: <%= @user.wallets.any? ? "none" : "block" %>">
+              Connect Wallet
+            </button>
+          </div>
+        </div>
     </div>
   </div>
