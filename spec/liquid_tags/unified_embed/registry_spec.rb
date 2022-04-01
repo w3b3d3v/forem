@@ -4,9 +4,6 @@ RSpec.describe UnifiedEmbed::Registry do
   subject(:unified_embed) { described_class }
 
   let(:article) { create(:article) }
-  let(:comment) do
-    create(:comment, commentable: article, user: user, body_markdown: "TheComment")
-  end
   let(:listing) { create(:listing) }
   let(:organization) { create(:organization) }
   let(:podcast) { create(:podcast) }
@@ -39,18 +36,34 @@ RSpec.describe UnifiedEmbed::Registry do
       "https://themobilist.medium.com/is-universal-basic-mobility-the-route-to-a-sustainable-c-b18e1e2d014c",
     ]
 
-    valid_instagram_url_formats = [
+    valid_instagram_post_url_formats = [
       "https://www.instagram.com/p/CXgzXWXroHK/",
+      "https://www.instagram.com/p/CXgzXWXroHK/?utm_source=somesource",
       "https://instagram.com/p/CXgzXWXroHK/",
       "http://www.instagram.com/p/CXgzXWXroHK/",
       "www.instagram.com/p/CXgzXWXroHK/",
       "instagram.com/p/CXgzXWXroHK/",
     ]
 
+    valid_instagram_profile_url_formats = [
+      "https://www.instagram.com/instagram/",
+      "https://www.instagram.com/instagram/?utm_source=somesource",
+      "https://instagram.com/instagram/",
+      "http://www.instagram.com/instagram/",
+      "www.instagram.com/instagram/",
+      "instagram.com/instagram/",
+    ]
+
     valid_kotlin_url_formats = [
       "https://pl.kotl.in/mCMciWl85",
       "https://pl.kotl.in/owreUFFUG?theme=darcula",
       "https://pl.kotl.in/Wplen1rPa?theme=darcula&readOnly=true&from=6&to=7",
+    ]
+
+    valid_loom_url_formats = [
+      "https://loom.com/share/12fb674d39dd4fe281becee7cdbc3cd1",
+      "https://loom.com/embed/12fb674d39dd4fe281becee7cdbc3cd1",
+      "https://www.loom.com/share/12fb674d39dd4fe281becee7cdbc3cd1",
     ]
 
     valid_replit_url_formats = [
@@ -127,11 +140,6 @@ RSpec.describe UnifiedEmbed::Registry do
         .to eq(CodepenTag)
     end
 
-    it "returns CommentTag for a Forem comment url" do
-      expect(described_class.find_liquid_tag_for(link: "#{URL.url}/#{user.username}/comment/#{comment.id_code}"))
-        .to eq(CommentTag)
-    end
-
     it "returns DotnetFiddleTag for a dotnetfiddle url" do
       expect(described_class.find_liquid_tag_for(link: "https://dotnetfiddle.net/PmoDip"))
         .to eq(DotnetFiddleTag)
@@ -158,6 +166,22 @@ RSpec.describe UnifiedEmbed::Registry do
         .to eq(GistTag)
     end
 
+    it "returns GithubTag for a github repository url (with or without option)", :aggregate_failures do
+      expect(described_class.find_liquid_tag_for(link: "https://github.com/forem/forem"))
+        .to eq(GithubTag)
+
+      expect(described_class.find_liquid_tag_for(link: "https://github.com/forem/forem noreadme"))
+        .to eq(GithubTag)
+    end
+
+    it "returns GithubTag for a github issue url", :aggregate_failures do
+      expect(described_class.find_liquid_tag_for(link: "https://github.com/forem/forem/issues/16673"))
+        .to eq(GithubTag)
+
+      expect(described_class.find_liquid_tag_for(link: "https://github.com/forem/forem/issues/16673#issue-1148186725"))
+        .to eq(GithubTag)
+    end
+
     it "returns GlitchTag for a valid glitch url", :aggregate_failures do
       valid_glitch_url_formats.each do |url|
         expect(described_class.find_liquid_tag_for(link: url))
@@ -165,8 +189,15 @@ RSpec.describe UnifiedEmbed::Registry do
       end
     end
 
-    it "returns InstagramTag for a valid instagram url", :aggregate_failures do
-      valid_instagram_url_formats.each do |url|
+    it "returns InstagramTag for a valid instagram post url", :aggregate_failures do
+      valid_instagram_post_url_formats.each do |url|
+        expect(described_class.find_liquid_tag_for(link: url))
+          .to eq(InstagramTag)
+      end
+    end
+
+    it "returns InstagramTag for a valid instagram profile url", :aggregate_failures do
+      valid_instagram_profile_url_formats.each do |url|
         expect(described_class.find_liquid_tag_for(link: url))
           .to eq(InstagramTag)
       end
@@ -186,6 +217,13 @@ RSpec.describe UnifiedEmbed::Registry do
       valid_kotlin_url_formats.each do |url|
         expect(described_class.find_liquid_tag_for(link: url))
           .to eq(KotlinTag)
+      end
+    end
+
+    it "returns LoomTag for a valid loom url", :aggregate_failures do
+      valid_loom_url_formats.each do |url|
+        expect(described_class.find_liquid_tag_for(link: url))
+          .to eq(LoomTag)
       end
     end
 
@@ -278,7 +316,7 @@ RSpec.describe UnifiedEmbed::Registry do
       end
     end
 
-    it "returns WikipediaTag for a twitter timeline url" do
+    it "returns WikipediaTag for a wikipedia url" do
       expect(described_class.find_liquid_tag_for(link: "https://en.wikipedia.org/wiki/Steve_Jobs"))
         .to eq(WikipediaTag)
     end
