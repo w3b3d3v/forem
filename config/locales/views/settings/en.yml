@@ -182,7 +182,7 @@ en:
             button:
               aria_label: Copy organization secret code to clipboard
             icon: Copy to clipboard
-            input:  
+            input:
               aria_label: Organization secret (to be rotated regularly)
             text: Copied to clipboard!
           cta: Call-to-action box
@@ -277,6 +277,7 @@ en:
         Billing: Billing
         Organization: Organization
         Extensions: Extensions
+        Metamask: Metamask
       save_profile: Save Profile Information
       wallet:
         connect_wallet: Connect Wallet

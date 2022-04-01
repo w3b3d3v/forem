@@ -277,6 +277,7 @@ fr:
         billing: Facturation
         organization: Organisation
         extensions: Extensions
+        metamask: Metamask
       save_profile: Save Profile Information
       wallet:
         connect_wallet: Connecter le portefeuille
