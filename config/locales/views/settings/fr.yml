@@ -279,3 +279,7 @@ fr:
         extensions: Extensions
         metamask: Metamask
       save_profile: Save Profile Information
+      wallet:
+        connect_wallet: Connecter le portefeuille
+        delete_wallet: Supprimer le portefeuille
+        wallets: Portefeuilles
