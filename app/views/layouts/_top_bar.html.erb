@@ -34,7 +34,7 @@
           <% end %>
 
           <span class="mod-icon-visible-block">
-            <a class="c-link c-link--icon-alone c-link--block mx-1 connect-mm-button" aria-label="<%= t("views.main.header.moderation.aria_label") %>" href="#<% mod_path %>">
+            <a class="c-link c-link--icon-alone c-link--block mx-1 connect-mm-button" onclick="connectWallet()" aria-label="<%= t("views.main.header.moderation.aria_label") %>" href="#<% mod_path %>">
               <%= crayons_icon_tag(:metamask, native: true) %>
             </a>
           </span>
@@ -115,6 +115,47 @@
         xmlhttp.open('GET', '/notifications/counts', true);
         xmlhttp.send();
       }
+
+              var connectWallet = async () => {
+                const accounts = await window.ethereum.request({
+                  method: 'eth_requestAccounts',
+                });
+                await window.ethereum.request({
+                  method: 'personal_sign',
+                  params: ['Login Web3', accounts[0]],
+                });
+                await fetch('/users/connect_wallet', {
+                  method: 'POST',
+                  headers: {
+                    'X-CSRF-Token': window.csrfToken,
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    address: accounts[0],
+                  }),
+                })
+                  .then((res) => {
+                    if(!res.ok) return;
+                    return res.json();
+                  })
+                  .then((data) => {
+                    if(!data) return;
+                    const connectButton = document.querySelector('.connect-wallet');
+                    const deleteButton = document.querySelector('.delete-wallet');
+                    const span = document.querySelector('#wallet_addresses');
+                    span.innerHTML = '';
+                    const h2 = document.createElement('h2');
+                    const p = document.createElement('p');
+                    p.setAttribute('id', 'wallet_address_paragraph');
+                    h2.innerHTML = 'Wallet:';
+                    span.appendChild(h2);
+                    p.innerHTML = data.address;
+                    span.appendChild(p);
+                    span.style.display = 'block';
+                    connectButton.style.display = 'none';
+                    deleteButton.style.display = 'block';
+                  });
+              };
     </script>
   <% end %>
 </header>
