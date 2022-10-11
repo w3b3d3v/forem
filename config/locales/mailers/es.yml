@@ -1,0 +1,33 @@
+---
+es:
+  mailers:
+    digest_mailer:
+      from: Resumen
+      more_top_posts: más publicaciones destacadas de %{community}
+      more_top_posts_based: más publicaciones destacadas de %{community} basadas en sus intereses
+      more_top_posts_from: más lecturas destacadas de la comunidad
+      more_trending_posts: más publicaciones en tendencia en %{community}
+      more_trending_posts_picked: más publicaciones en tendencia %{community} seleccionadas para ti
+      other_posts: otras publicaciones que te pueden gustar
+      other_community_posts: otras publicaciones de %{community} que te pueden gustar
+      other_top_posts: otras publicaciones destacadas de %{community}
+      other_trending_posts: otras publicaciones en tendencia de %{community}
+    notify_mailer:
+      account_deleted: "Confirmación de eliminación de cuenta - %{community}"
+      deletion_requested: "%{community} - Eliminación de cuenta solicitada"
+      trusted: ¡Felicitaciones! ¡Ahora eres un usuario "de confianza" en %{community}!
+      moderator: '¡Felicitaciones! Eres el moderador de #%{tag_name}'
+      new_follower: te acaba de seguir en %{community}
+      new_mention: "%{name} acaba de mencionarte en su %{type}"
+      org_deleted: "%{community} - Confirmación de eliminación de la organización"
+      new_reply: "%{name} respondió a tu %{type}"
+      feedback: Gracias por tu reporte sobre %{community}
+      export: La exportación de tu contenido está lista
+      unread_notifications:
+        one: "🔥 Tienes %{count} notificaciones no leídas en %{community}"
+        other: "🔥 Tienes %{count} notificaciones no leídas en %{community}"
+      new_badge: Acabas de recibir una insignia
+      video_upload: La carga de tu video está completa
+    verification_mailer:
+      from: "%{community} Verificación de correo electrónico <%{email}>"
+      verify_ownership: Verifique la propiedad de su cuenta %{community}

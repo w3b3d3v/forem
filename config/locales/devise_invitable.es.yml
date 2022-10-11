@@ -1,0 +1,33 @@
+---
+es:
+  devise:
+    failure:
+      invited: Tienes una invitación pendiente, acéptala para finalizar la creación de tu cuenta.
+    invitations:
+      edit:
+        header: Establece tu contraseña
+        submit_button: Vamos a empezar
+      invitation_removed: Tu invitación fue removida.
+      invitation_token_invalid: El token de invitación proporcionado no es válido!
+      new:
+        header: Enviar invitación
+        submit_button: Enviar una invitación
+      no_invitations_remaining: No invitaciones restantes
+      send_instructions: Un correo electrónico de invitación ha sido enviado a %{email}.
+      updated: Su contraseña fue establecida exitosamente. Has iniciado sesión.
+      updated_not_active: Su contraseña fue establecida exitosamente.
+    mailer:
+      invitation_instructions:
+        accept_instructions: Puedes aceptar la invitación dando click en este enlace
+        accept: Aceptar Invitación
+        accept_until: Está invitación expirará después de %{due_date}.
+        hello: Hola
+        ignore: Si no deseas aceptar la invitación, por favor ignora este correo electrónico. Tu cuenta no será creada hasta que accedas al enlace arriba y establezcas tu contraseña.
+        someone_invited_you: Has sido invitado(a) a unirte a la comunidad %{community_name} en este enlace %{url}.
+        subject: Instrucciones de invitación
+  time:
+    formats:
+      devise:
+        mailer:
+          invitation_instructions:
+            accept_until_format: "%B %d, %Y %I:%M %p"
