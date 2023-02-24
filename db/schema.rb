@@ -13,7 +13,6 @@
 ActiveRecord::Schema[7.0].define(version: 2023_02_16_132930) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
-  enable_extension "pg_stat_statements"
   enable_extension "pg_trgm"
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -1200,7 +1199,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_16_132930) do
     t.datetime "last_article_at", precision: nil, default: "2017-01-01 05:00:00"
     t.datetime "last_comment_at", precision: nil, default: "2017-01-01 05:00:00"
     t.datetime "last_followed_at", precision: nil
-    t.datetime "last_moderation_notification", precision: nil, default: "2017-01-01 05:00:00"
+    t.datetime "last_moderation_notification", precision: nil, default: "2017-01-01 00:00:00"
     t.datetime "last_notification_activity", precision: nil
     t.string "last_onboarding_page"
     t.datetime "last_reacted_at", precision: nil
@@ -1330,6 +1329,14 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_16_132930) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "wallets", force: :cascade do |t|
+    t.string "address"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id"], name: "index_wallets_on_user_id"
+  end
+
   create_table "welcome_notifications", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -1413,6 +1420,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_16_132930) do
   add_foreign_key "users_roles", "roles", on_delete: :cascade
   add_foreign_key "users_roles", "users", on_delete: :cascade
   add_foreign_key "users_settings", "users"
+  add_foreign_key "wallets", "users"
   create_trigger("update_reading_list_document", :generated => true, :compatibility => 1).
       on("articles").
       name("update_reading_list_document").
