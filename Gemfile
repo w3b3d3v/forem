@@ -23,7 +23,7 @@ gem "carrierwave", "~> 2.2" # Upload files in your Ruby applications, map them t
 gem "carrierwave-bombshelter", "~> 0.2" # Protect your carrierwave from image bombs
 gem "cloudinary", "~> 1.23" # Client library for easily using the Cloudinary service
 gem "counter_culture", "~> 3.2" # counter_culture provides turbo-charged counter caches that are kept up-to-date
-gem "ddtrace", "~> 1.3.0" # ddtrace is Datadog’s tracing client for Ruby.
+gem "ddtrace", "~> 1.3.0", force_ruby_platform: true # ddtrace is Datadog’s tracing client for Ruby.
 gem "devise", "~> 4.8" # Flexible authentication solution for Rails
 gem "devise_invitable", "~> 2.0.6" # Allows invitations to be sent for joining
 gem "dogstatsd-ruby", "~> 4.8" # A client for DogStatsD, an extension of the StatsD metric server for Datadog
@@ -41,6 +41,7 @@ gem "fog-aws", "~> 3.14" # 'fog' gem to support Amazon Web Services
 gem "front_matter_parser", "~> 1.0" # Parse a front matter from syntactically correct strings or files
 gem "gemoji", "~> 4.0.0.rc3" # Character information and metadata for standard and custom emoji
 gem "gibbon", "~> 3.4" # API wrapper for MailChimp's API
+gem "google-protobuf", "~> 3.22.0", force_ruby_platform: true
 gem "hairtrigger", "~> 1.0.0" # HairTrigger lets you create and manage database triggers in a concise, db-agnostic, Rails-y way.
 gem "honeybadger", "~> 4.12" # Used for tracking application errors
 gem "honeycomb-beeline", "~> 2.11.0" # Monitoring and Observability gem
@@ -55,9 +56,11 @@ gem "js-routes", "~> 2.2" # Brings Rails named routes to javascript
 gem "jsonapi-serializer", "~> 2.2" # Serializer for Ruby objects
 gem "kaminari", "~> 1.2" # A Scope & Engine based, clean, powerful, customizable and sophisticated paginator
 gem "katex", "~> 0.9.0" # This rubygem enables you to render TeX math to HTML using KaTeX. It uses ExecJS under the hood
+gem "libdatadog", "0.7.0.1.1", force_ruby_platform: true # dependencie of ddtrace
+gem "libddwaf", "1.3.0.2.0", force_ruby_platform: true, require: false # dependencie of ddtrace
 gem "liquid", "~> 5.4" # A secure, non-evaling end user template engine with aesthetic markup
 gem "metainspector", "~> 5.12" # To get and parse website metadata for Open Graph rich objects
-gem "nokogiri", "~> 1.13" # HTML, XML, SAX, and Reader parser
+gem "nokogiri", "~> 1.13", force_ruby_platform: true # HTML, XML, SAX, and Reader parser
 gem "octokit", "~> 5.2" # Simple wrapper for the GitHub API
 gem "oj", "~> 3.13" # JSON parser and object serializer
 gem "omniauth", "~> 2.1" # A generalized Rack framework for multiple-provider authentication

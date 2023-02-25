@@ -153,7 +153,17 @@ module Settings
 
     # get the setting's value, YAML decoded
     def value
-      YAML.load(self[:value]) if self[:value].present? # rubocop:disable Security/YAMLLoad
+      return if self[:value].blank?
+
+      permitted_classes = [
+        Time,
+        Date,
+        BigDecimal,
+        ActiveSupport::HashWithIndifferentAccess,
+        ActiveSupport::TimeWithZone,
+        ActiveSupport::TimeZone,
+      ]
+      YAML.load(self[:value], permitted_classes: permitted_classes) # rubocop:disable Security/YAMLLoad
     end
 
     # set the settings's value, YAML encoded
