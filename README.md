@@ -1,7 +1,17 @@
 <div align="center">
   <br>
   <h1>Forem 🌱</h1>
-  <strong>For Empowering Community</strong>
+  <strong>Web3dev Forked Edition</strong><br>
+  <svg width="30px" height="30px" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <rect x="38" y="10" width="24" height="12" fill="#A4DF5A"/>
+        <rect x="24" y="30" width="52" height="12" fill="#67C9FF"/>
+        <rect x="10" y="50" width="80" height="12" fill="#8D55F4"/>
+      </svg>
+  <h3>
+      <a href="https://hub.docker.com/r/cancelei/web3dev-forem" target="_blank">
+      Docker Image
+    </a>
+  </h3>
 </div>
 <br>
 <p align="center">
