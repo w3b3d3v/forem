@@ -30,6 +30,20 @@ jobs:
       E2E: true
 
     steps:
+      - name: Print Environment Name
+        run: |
+          echo "Environment: ${{ github.environment }}"
+      - name: Check Docker Username Secret
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        run: |
+          echo "Docker Username: ${DOCKER_USERNAME}"
+
+      - name: Check Docker Password Secret
+        env:
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: |
+          echo "Docker Password: ${DOCKER_PASSWORD}"
       - uses: actions/checkout@v4
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
