@@ -8,6 +8,7 @@ jobs:
   build-application:
     name: Build and Push `Forem`
     runs-on: ubuntu-latest
+    environment: cancelei_development
     if: ${{ github.event_name != 'pull_request' || github.event.action != 'closed' }}
     outputs:
       tags: ${{ steps.meta.outputs.tags }}
@@ -51,7 +52,7 @@ jobs:
         with:
           push: true
           context: .
-          tags: ${{ secrets.DOCKER_USERNAME }}/web3dev-forem:development
+          tags: ${{ secrets.DOCKER_USERNAME }}}}/forem-web3dev:ci-${{ github.sha }}
           labels: ${{ steps.meta.outputs.labels }}
 
   render-compose-file:
