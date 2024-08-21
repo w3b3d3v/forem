@@ -1,4 +1,5 @@
 name: Build PR Image
+
 on:
   pull_request:
     types: [opened, synchronize, reopened, closed]
@@ -24,7 +25,6 @@ jobs:
         with:
           images: registry.uffizzi.com/${{ env.UUID_TAG_APP }}
           tags: type=raw,value=30d
-      - uses: actions/checkout@master
       - name: Create the .env file
         run: |
           cp .env_sample .env
@@ -39,6 +39,20 @@ jobs:
           target: uffizzi
           cache-from: type=gha
           cache-to: type=gha,mode=min
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Push Image to Docker Hub
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          context: .
+          tags: ${{ secrets.DOCKER_USERNAME }}/web3dev-forem:development
+          labels: ${{ steps.meta.outputs.labels }}
 
   render-compose-file:
     name: Render Docker Compose File
@@ -64,12 +78,6 @@ jobs:
         with:
           name: preview-spec
           path: docker-compose.rendered.yml
-          retention-days: 2
-      - name: Upload PR Event as Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: preview-spec
-          path: ${{ github.event_path }}
           retention-days: 2
 
   delete-preview:
