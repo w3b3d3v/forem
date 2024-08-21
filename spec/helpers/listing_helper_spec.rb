@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe ListingHelper, type: :helper do
+RSpec.describe ListingHelper do
   let!(:cat1) { create(:listing_category, cost: 1) }
   let!(:cat2) { create(:listing_category, :cfp, cost: 5) }
 
@@ -8,8 +8,8 @@ RSpec.describe ListingHelper, type: :helper do
     it "returns the correct options array" do
       expect(helper.select_options_for_categories).to match_array(
         [
-          ["#{cat1.name} (1 Credit)", cat1.id],
-          ["#{cat2.name} (5 Credits)", cat2.id],
+          ["#{cat1.name} (1 Credit)", cat1.slug, cat1.id],
+          ["#{cat2.name} (5 Credits)", cat2.slug, cat2.id],
         ],
       )
     end

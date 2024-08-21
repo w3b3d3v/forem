@@ -71,8 +71,16 @@ module Authorizer
       has_role?(:comment_suspended)
     end
 
+    def limited?
+      has_role?(:limited)
+    end
+
     def creator?
       has_role?(:creator)
+    end
+
+    def accesses_mod_response_templates?
+      has_trusted_role? || any_admin? || super_moderator? || tag_moderator?
     end
 
     # When you need to know if we trust the user, but don't want to
@@ -90,6 +98,10 @@ module Authorizer
     # @todo Review whether we can use trusted? or if we even need to cache things.
     def has_trusted_role?
       has_role?(:trusted)
+    end
+
+    def super_moderator?
+      has_role?(:super_moderator)
     end
 
     def podcast_admin_for?(podcast)
@@ -119,6 +131,18 @@ module Authorizer
 
     def suspended?
       has_role?(:suspended)
+    end
+
+    def spam?
+      has_role?(:spam)
+    end
+
+    def base_subscriber?
+      has_role?(:base_subscriber)
+    end
+
+    def spam_or_suspended?
+      has_any_role?(:spam, :suspended)
     end
 
     def tag_moderator?(tag: nil)
@@ -153,8 +177,8 @@ module Authorizer
       has_role?(:warned)
     end
 
-    def workshop_eligible?
-      has_any_role?(:workshop_pass)
+    def clear_cache
+      remove_instance_variable(:@trusted) if defined? @trusted
     end
 
     private

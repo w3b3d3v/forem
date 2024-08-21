@@ -39,7 +39,6 @@ class UserPolicy < ApplicationPolicy
     name
     password
     password_confirmation
-    payment_pointer
     permit_adjacent_sponsors
     profile_image
     text_color_hex
@@ -50,6 +49,13 @@ class UserPolicy < ApplicationPolicy
     current_user?
   end
 
+  alias remove_identity? edit?
+  alias update_password? edit?
+
+  # The analytics? policy method is also on the OrganizationPolicy.  This exists specifically to allow for
+  # "duck-typing" on the tests.
+  alias analytics? edit?
+
   def onboarding_update?
     true
   end
@@ -59,7 +65,7 @@ class UserPolicy < ApplicationPolicy
   alias onboarding_notifications_checkbox_update? onboarding_update?
 
   def update?
-    edit? && !user_suspended?
+    edit? && !user.spam_or_suspended?
   end
 
   alias destroy? edit?
@@ -71,24 +77,30 @@ class UserPolicy < ApplicationPolicy
   alias request_destroy? edit?
 
   def join_org?
-    !user_suspended?
+    !user.spam_or_suspended?
   end
 
   def leave_org?
     OrganizationMembership.exists?(user_id: user.id, organization_id: record.id)
   end
 
-  alias remove_identity? edit?
-
   def dashboard_show?
     current_user? || user_super_admin? || user_any_admin?
   end
 
-  def moderation_routes?
-    (user.has_trusted_role? || user_any_admin?) && !user.suspended?
+  def elevated_user?
+    user_any_admin? || user_super_moderator?
   end
 
-  alias update_password? edit?
+  alias toggle_suspension_status? elevated_user?
+  alias manage_user_roles? elevated_user?
+  alias unpublish_all_articles? elevated_user?
+  alias search_by_email? elevated_user?
+  alias toggle_spam? elevated_user?
+
+  def moderation_routes?
+    (user.has_trusted_role? || elevated_user?) && !user.spam_or_suspended?
+  end
 
   def permitted_attributes
     PERMITTED_ATTRIBUTES

@@ -3,12 +3,12 @@ module Mentions
   # This class will check to see if there are any @-mentions in the post, and will
   # create the associated mentions inline if necessary.
   class CreateAll
-    def initialize(notifiable)
-      @notifiable = notifiable
-    end
-
     def self.call(...)
       new(...).call
+    end
+
+    def initialize(notifiable)
+      @notifiable = notifiable
     end
 
     def call
@@ -24,7 +24,7 @@ module Mentions
       mentioned_usernames = extract_usernames_from_mentions_in_text
 
       collect_existing_users(mentioned_usernames)
-        .yield_self do |existing_mentioned_users|
+        .then do |existing_mentioned_users|
           reject_notifiable_author(existing_mentioned_users)
         end
     end

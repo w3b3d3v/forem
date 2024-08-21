@@ -1,4 +1,3 @@
-/* global jQuery */
 import { Controller } from '@hotwired/stimulus';
 import { adminModal } from '../adminModal';
 import { displaySnackbar } from '../messageUtilities';
@@ -38,25 +37,6 @@ export default class ConfigController extends Controller {
   }
 
   // GENERAL FUNCTIONS START
-
-  // This is a bit of hack because we have to deal with Bootstrap used inline, jQuery and Stimulus  :-/
-  // NOTE: it'd be best to rewrite this as a reusable "toggle" element in Stimulus without using jQuery + Bootstrap
-  toggleAccordionButtonLabel(event) {
-    const $target = jQuery(event.target);
-    const $container = $target.parent();
-
-    const text = $target.text();
-
-    if ($container) {
-      const show = $container.attr('aria-expanded') === 'true';
-
-      if (show) {
-        $target.text(text.replace(/Hide/i, 'Show'));
-      } else {
-        $target.text(text.replace(/Show/i, 'Hide'));
-      }
-    }
-  }
 
   disableTargetField(event) {
     const targetElementName = event.target.dataset.disableTarget;
@@ -200,13 +180,12 @@ export default class ConfigController extends Controller {
     event.preventDefault();
     this.configModalAnchorTarget.innerHTML = adminModal({
       title: emailAuthModalTitle,
-      controllerName: 'config',
-      closeModalFunction: 'closeAdminModal',
+      closeModalFunction: this.closeAdminModal.bind(this),
       body: emailAuthModalBody,
       leftBtnText: 'Confirm disable',
-      leftBtnAction: 'disableEmailAuthFromModal',
+      leftBtnAction: this.disableEmailAuthFromModal.bind(this),
       rightBtnText: 'Cancel',
-      rightBtnAction: 'closeAdminModal',
+      rightBtnAction: this.closeAdminModal.bind(this),
       leftBtnClasses: 'crayons-btn--danger',
       rightBtnClasses: 'crayons-btn--secondary',
     });
@@ -280,13 +259,12 @@ export default class ConfigController extends Controller {
     const { providerOfficialName } = event.target.dataset;
     this.configModalAnchorTarget.innerHTML = adminModal({
       title: this.authProviderModalTitle(providerOfficialName),
-      controllerName: 'config',
-      closeModalFunction: 'closeAdminModal',
+      closeModalFunction: this.closeAdminModal.bind(this),
       body: this.authProviderModalBody(providerOfficialName),
       leftBtnText: 'Confirm disable',
-      leftBtnAction: 'disableAuthProviderFromModal',
+      leftBtnAction: this.disableAuthProviderFromModal.bind(this),
       rightBtnText: 'Cancel',
-      rightBtnAction: 'closeAdminModal',
+      rightBtnAction: this.closeAdminModal.bind(this),
       leftBtnClasses: 'crayons-btn--danger',
       rightBtnClasses: 'crayons-btn--secondary',
       leftCustomDataAttr: `data-provider-name=${providerName}`,
@@ -303,6 +281,8 @@ export default class ConfigController extends Controller {
     const enabledIndicator = document.getElementById(
       `${providerName}-enabled-indicator`,
     );
+    authEnableButton.innerHTML = 'Enable';
+    authEnableButton.setAttribute('data-button-text', 'enable');
     authEnableButton.setAttribute('data-enable-auth', 'false');
     this.listAuthToBeEnabled(event);
     this.checkForAndGuardSoleAuthProvider();
@@ -419,13 +399,12 @@ export default class ConfigController extends Controller {
   activateMissingKeysModal(providers) {
     this.configModalAnchorTarget.innerHTML = adminModal({
       title: 'Setup not complete',
-      controllerName: 'config',
-      closeModalFunction: 'closeAdminModal',
+      closeModalFunction: this.closeAdminModal.bind(this),
       body: this.missingAuthKeysModalBody(providers),
       leftBtnText: 'Continue editing',
-      leftBtnAction: 'closeAdminModal',
+      leftBtnAction: this.closeAdminModal.bind(this),
       rightBtnText: 'Cancel',
-      rightBtnAction: 'cancelAuthProviderEnable',
+      rightBtnAction: this.cancelAuthProviderEnable.bind(this),
       rightBtnClasses: 'crayons-btn--secondary',
     });
   }

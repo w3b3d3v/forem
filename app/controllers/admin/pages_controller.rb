@@ -3,12 +3,12 @@ module Admin
     layout "admin"
 
     PAGE_ALLOWED_PARAMS = %i[
-      title slug body_markdown body_html body_json description template
+      title slug body_markdown body_html body_json body_css description template
       is_top_level_path social_image landing_page
     ].freeze
 
     def index
-      @pages = Page.all.order(created_at: :desc)
+      @pages = Page.order(created_at: :desc)
       @code_of_conduct = Page.find_by(slug: Page::CODE_OF_CONDUCT_SLUG)
       @privacy = Page.find_by(slug: Page::PRIVACY_SLUG)
       @terms = Page.find_by(slug: Page::TERMS_SLUG)
@@ -29,23 +29,11 @@ module Admin
       @landing_page = Page.landing_page
     end
 
-    def update
-      @page = Page.find(params[:id])
-
-      if @page.update(page_params)
-        flash[:success] = "Page has been successfully updated."
-        redirect_to admin_pages_path
-      else
-        flash.now[:error] = @page.errors_as_sentence
-        render :edit
-      end
-    end
-
     def create
       @page = Page.new(page_params)
 
       if @page.save
-        flash[:success] = "Page has been successfully created."
+        flash[:success] = I18n.t("admin.pages_controller.created")
         redirect_to admin_pages_path
       else
         flash.now[:error] = @page.errors_as_sentence
@@ -53,11 +41,21 @@ module Admin
       end
     end
 
+    def update
+      @page = Page.find(params[:id])
+      if @page.update(page_params)
+        flash[:success] = I18n.t("admin.pages_controller.updated")
+        redirect_to admin_pages_path
+      else
+        flash.now[:error] = @page.errors_as_sentence
+        render :edit
+      end
+    end
+
     def destroy
       @page = Page.find(params[:id])
       @page.destroy
-
-      flash[:success] = "Page has been successfully deleted."
+      flash[:success] = I18n.t("admin.pages_controller.deleted")
       redirect_to admin_pages_path
     end
 
@@ -78,24 +76,24 @@ module Admin
                 Page.new(
                   slug: slug,
                   body_html: html,
-                  title: "Code of Conduct",
-                  description: "A page that describes how to behave on this platform",
+                  title: I18n.t("admin.pages_controller.code_of_conduct.title"),
+                  description: I18n.t("admin.pages_controller.code_of_conduct.description"),
                   is_top_level_path: true,
                 )
               when Page::PRIVACY_SLUG
                 Page.new(
                   slug: slug,
                   body_html: html,
-                  title: "Privacy Policy",
-                  description: "A page that describes the privacy policy",
+                  title: I18n.t("admin.pages_controller.privacy_policy.title"),
+                  description: I18n.t("admin.pages_controller.privacy_policy.description"),
                   is_top_level_path: true,
                 )
               when Page::TERMS_SLUG
                 Page.new(
                   slug: slug,
                   body_html: html,
-                  title: "Terms of Use",
-                  description: "A page that describes the terms of use for the application",
+                  title: I18n.t("admin.pages_controller.terms_of_use.title"),
+                  description: I18n.t("admin.pages_controller.terms_of_use.description"),
                   is_top_level_path: true,
                 )
               else

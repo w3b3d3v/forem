@@ -4,16 +4,30 @@ class DigestMailer < ApplicationMailer
   def digest_email
     @user = params[:user]
     @articles = params[:articles]
+    @billboards = params[:billboards]
     @unsubscribe = generate_unsubscribe_token(@user.id, :email_digest_periodic)
 
     subject = generate_title
+
+    # set sendgrid category in the header using smtp api
+    # https://docs.sendgrid.com/for-developers/sending-email/building-an-x-smtpapi-header
+    if ForemInstance.sendgrid_enabled?
+      smtpapi_header = { category: "Digest Email" }.to_json
+      headers["X-SMTPAPI"] = smtpapi_header
+    end
+
     mail(to: @user.email, subject: subject)
   end
 
   private
 
   def generate_title
-    "#{adjusted_title(@articles.first)} + #{@articles.size - 1} #{email_end_phrase} #{random_emoji}"
+    # Winner of digest_title_03_11
+    if ForemInstance.dev_to?
+      "#{@articles.first.title} | DEV Digest"
+    else
+      @articles.first.title
+    end
   end
 
   def adjusted_title(article)

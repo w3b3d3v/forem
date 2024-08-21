@@ -1,5 +1,5 @@
 <div class="navigation-progress" id="navigation-progress"></div>
-<header class="crayons-header print-hidden">
+<header id="topbar" class="crayons-header topbar print-hidden">
   <span id="route-change-target" tabindex="-1"></span>
   <a href="#main-content" class="skip-content-link"><%= t("views.main.header.skip") %></a>
   <div class="crayons-header__container">
@@ -14,10 +14,18 @@
       <form accept-charset="UTF-8" method="get" action="<%= search_path %>" role="search">
         <div class="crayons-fields crayons-fields--horizontal">
           <div class="crayons-field flex-1 relative">
-            <input class="crayons-header--search-input crayons-textfield js-search-input" type="text" id="nav-search" name="q" placeholder="<%= t("views.search.placeholder") %>" autocomplete="off" />
-            <button type="submit" aria-label="<%= t("views.search.icon.aria_label") %>" class="c-btn c-btn--icon-alone absolute inset-px left-auto mt-0 py-0">
+            <input id="search-input" class="crayons-header--search-input crayons-textfield js-search-input" type="text" id="nav-search" name="q" placeholder="<%= @article.present? ? "Find related posts..." : t("views.search.placeholder") %>" autocomplete="off" />
+            <button type="submit" aria-label="<%= t("views.search.icon.aria_label") %>" class="c-btn c-btn--icon-alone absolute inset-px right-auto mt-0 py-0">
               <%= crayons_icon_tag(:search, aria_hidden: true, title: t("views.search.icon.title")) %>
             </button>
+
+            <a class="crayons-header--search-brand-indicator" href="https://www.algolia.com/developers/?utm_source=devto&utm_medium=referral" target="_blank" rel="noopener noreferrer">
+              <% if Settings::General.display_algolia_branding %>
+                Powered by
+                <%= crayons_icon_tag(:algolia, aria_hidden: true, title: t("views.search.icon.title")) %>
+                Algolia
+              <% end %>
+            </a>
           </div>
         </div>
       </form>
@@ -29,7 +37,9 @@
       </a>
       <% if user_signed_in? %>
         <span class="hidden m:flex ml-auto">
-          <a href="<%= new_path %>" class="c-cta c-cta--branded mr-2 whitespace-nowrap"><%= t("views.main.create_post") %></a>
+          <%= application_policy_content_tag("a", record: Article, query: :create?, href: new_path, class: "c-cta c-cta--branded mr-2 whitespace-nowrap") do %>
+            <%= t("views.main.create_post") %>
+          <% end %>
 
           <span class="trusted-visible-block">
             <a id="moderation-link" class="c-link c-link--icon-alone c-link--block mx-1" aria-label="<%= t("views.main.header.moderation.aria_label") %>" href="<%= mod_path %>">
@@ -50,15 +60,17 @@
           <%= render "layouts/nav_menu" %>
         </div>
       <% else %>
-        <span class="hidden m:block">
-          <a href="<%= sign_up_path %>" class="c-link c-link--block mr-2 whitespace-nowrap ml-auto" data-no-instant>
-            <%= t("views.main.header.login") %>
-          </a>
-        </span>
+        <div class="flex" id="authentication-top-nav-actions">
+          <span class="hidden m:block">
+            <a href="<%= sign_up_path %>" class="c-link c-link--block mr-2 whitespace-nowrap ml-auto" data-no-instant>
+              <%= t("views.main.header.login") %>
+            </a>
+          </span>
 
-        <a href="<%= sign_up_path(state: "new-user") %>" class="c-cta c-cta--branded whitespace-nowrap mr-2" data-no-instant>
-          <%= t("views.main.header.create_account") %>
-        </a>
+          <a href="<%= sign_up_path(state: "new-user") %>" data-tracking-id="ca_top_nav" data-tracking-source="top_navbar" class="c-cta c-cta--branded whitespace-nowrap mr-2" data-no-instant>
+            <%= t("views.main.header.create_account") %>
+          </a>
+        </div>
       <% end %>
     </div>
   </div>

@@ -2,16 +2,10 @@ class PollTag < LiquidTagBase
   PARTIAL = "liquids/poll".freeze
   VALID_CONTEXTS = %w[Article].freeze
 
-  # @see LiquidTagBase.user_authorization_method_name for discussion
-  def self.user_authorization_method_name
-    :any_admin?
-  end
-
   VALID_ROLES = %i[
     admin
     super_admin
   ].freeze
-
   SCRIPT = <<~JAVASCRIPT.freeze
     if (document.head.querySelector('meta[name="user-signed-in"][content="true"]')) {
       function displayPollResults(json) {
@@ -106,6 +100,15 @@ class PollTag < LiquidTagBase
     }
   JAVASCRIPT
 
+  # @see LiquidTagBase.user_authorization_method_name for discussion
+  def self.user_authorization_method_name
+    :any_admin?
+  end
+
+  def self.script
+    SCRIPT
+  end
+
   def initialize(_tag_name, id_code, _parse_context)
     super
     @poll = Poll.find(id_code)
@@ -118,16 +121,6 @@ class PollTag < LiquidTagBase
         poll: @poll
       },
     )
-  end
-
-  def find_poll(id_code)
-    Poll.find(id_code.to_i(26))
-  rescue ActiveRecord::RecordNotFound
-    raise StandardError, I18n.t("liquid_tags.poll_tag.invalid_poll_id")
-  end
-
-  def self.script
-    SCRIPT
   end
 end
 

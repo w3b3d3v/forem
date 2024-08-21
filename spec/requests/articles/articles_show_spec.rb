@@ -1,8 +1,12 @@
 require "rails_helper"
 
-RSpec.describe "ArticlesShow", type: :request do
+RSpec.describe "ArticlesShow" do
   let(:user) { create(:user) }
-  let(:article) { create(:article, user: user, published: true, organization: organization) }
+  let(:admin_user) { create(:user, :admin) }
+  let(:article) do
+    create(:article, user: user, published: true, organization: organization,
+                     tag_list: "javascript, html")
+  end
   let(:organization) { create(:organization) }
   let(:doc) { Nokogiri::HTML(response.body) }
   let(:text) { doc.at('script[type="application/ld+json"]').text }
@@ -18,7 +22,6 @@ RSpec.describe "ArticlesShow", type: :request do
       expect(response).to have_http_status(:ok)
     end
 
-    # rubocop:disable RSpec/ExampleLength
     it "renders the proper JSON-LD for an article" do
       expect(response_json).to include(
         "@context" => "http://schema.org",
@@ -57,6 +60,39 @@ RSpec.describe "ArticlesShow", type: :request do
         "dateModified" => article.published_timestamp,
       )
     end
+
+    it "renders 'posted on' information" do
+      get article.path
+      expect(response.body).to include("Posted on")
+      expect(response.body).not_to include("Scheduled for")
+    end
+  end
+
+  describe "GET /:username/:slug (scheduled)" do
+    let(:scheduled_article) { create(:article, published: true, published_at: Date.tomorrow) }
+    let(:query_params) { "?preview=#{scheduled_article.password}" }
+    let(:scheduled_article_path) { scheduled_article.path + query_params }
+
+    it "renders a scheduled article with the article password" do
+      get scheduled_article_path
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include(scheduled_article.title)
+    end
+
+    it "renders 'scheduled for' information" do
+      get scheduled_article_path
+      expect(response.body).to include("Scheduled for")
+      expect(response.body).not_to include("Posted on")
+    end
+
+    it "doesn't show edit link when user is not signed in" do
+      get scheduled_article_path
+      expect(response.body).not_to include("Click to edit")
+    end
+
+    it "renders 404 for a scheduled article w/o article password" do
+      expect { get scheduled_article.path }.to raise_error(ActiveRecord::RecordNotFound)
+    end
   end
 
   it "renders the proper organization for an article when one is present" do
@@ -76,7 +112,6 @@ RSpec.describe "ArticlesShow", type: :request do
       },
     )
   end
-  # rubocop:enable RSpec/ExampleLength
 
   context "when keywords are set" do
     it "shows keywords" do
@@ -98,6 +133,32 @@ RSpec.describe "ArticlesShow", type: :request do
     end
   end
 
+  context "when author has spam role" do
+    before do
+      article.user.add_role(:spam)
+    end
+
+    it "renders 404" do
+      expect do
+        get article.path
+      end.to raise_error(ActiveRecord::RecordNotFound)
+    end
+
+    it "renders 404 for authorized user" do
+      sign_in user
+      expect do
+        get article.path
+      end.to raise_error(ActiveRecord::RecordNotFound)
+    end
+
+    it "renders successfully for admins", :aggregate_failures do
+      sign_in admin_user
+      get article.path
+      expect(response).to be_successful
+      expect(response.body).to include("Spam")
+    end
+  end
+
   context "when user signed in" do
     before do
       sign_in user
@@ -107,6 +168,10 @@ RSpec.describe "ArticlesShow", type: :request do
     describe "GET /:slug (user)" do
       it "does not render json ld" do
         expect(response.body).not_to include "application/ld+json"
+      end
+
+      it "renders comment sort button" do
+        expect(response.body).to include "toggle-comments-sort-dropdown"
       end
     end
   end
@@ -119,6 +184,139 @@ RSpec.describe "ArticlesShow", type: :request do
     describe "GET /:slug (user)" do
       it "does not render json ld" do
         expect(response.body).to include "application/ld+json"
+      end
+
+      it "does not render comment sort button" do
+        expect(response.body).not_to include "toggle-comments-sort-dropdown"
+      end
+    end
+  end
+
+  context "with comments" do
+    let!(:spam_comment) { create(:comment, score: -450, commentable: article, body_markdown: "Spam comment") }
+
+    before do
+      create(:comment, score: 10, commentable: article, body_markdown: "Good comment")
+      create(:comment, score: -99, commentable: article, body_markdown: "Bad comment")
+      create(:comment, score: -10, commentable: article, body_markdown: "Mediocre comment")
+    end
+
+    context "when user signed in" do
+      before do
+        sign_in user
+      end
+
+      it "shows positive comments" do
+        get article.path
+        expect(response.body).to include("Good comment")
+      end
+
+      it "shows comments with score from -400 to -75" do
+        get article.path
+        expect(response.body).to include("Bad comment")
+      end
+
+      it "hides comments with score < -400 and no comment deleted message" do
+        get article.path
+        expect(response.body).not_to include("Spam comment")
+        expect(response.body).not_to include("Comment deleted")
+      end
+
+      it "displays children of a low-quality comment and comment deleted message" do
+        create(:comment, score: 0, commentable: article, parent: spam_comment, body_markdown: "Child comment")
+        get article.path
+        expect(response.body).to include("Child comment")
+        expect(response.body).to include("Comment deleted") # instead of the low quality one
+      end
+
+      it "displays comments count w/o including super low-quality ones" do
+        get article.path
+        expect(response.body).to include("<span class=\"js-comments-count\" data-comments-count=\"3\">(3)</span>")
+      end
+
+      it "displays includes spam comments in comments count if they have children" do
+        create(:comment, score: 0, commentable: article, parent: spam_comment, body_markdown: "Child comment")
+        get article.path
+        expect(response.body).to include("<span class=\"js-comments-count\" data-comments-count=\"5\">(5)</span>")
+      end
+
+      it "suggests to view_full comments page with the correct count" do
+        # pretend that we have a large displayed comments count
+        article.update_column(:displayed_comments_count, 31)
+        get article.path
+        expect(response.body).to include("View full discussion (31 comments)")
+      end
+    end
+
+    context "when user not signed in" do
+      it "shows positive comments" do
+        get article.path
+        expect(response.body).to include("Good comment")
+      end
+
+      it "hides all negative comments", :aggregate_failures do
+        get article.path
+        expect(response.body).not_to include("Bad comment")
+        expect(response.body).not_to include("Spam comment")
+        expect(response.body).not_to include("Mediocre comment")
+      end
+
+      it "doesn't show children of a low-quality comment" do
+        create(:comment, score: 0, commentable: article, parent: spam_comment, body_markdown: "Child comment")
+        get article.path
+        expect(response.body).not_to include("Child comment")
+      end
+
+      # comments number is larger than @comments_to_show_count (15)
+      it "suggests to view_full comments page when needed" do
+        # pretend that we have a large displayed comments count
+        article.update_column(:displayed_comments_count, 16)
+        get article.path
+        expect(response.body).to include("View full discussion (16 comments)")
+      end
+    end
+
+    context "when below post billboard exists" do
+      it "does not render when it is below long article threshold" do
+        article.update_column(:body_markdown, "a" * 888)
+        get article.path
+        expect(response.body).not_to include("body-billboard-container")
+      end
+
+      it "renders when it is above long article threshold" do
+        article.update_column(:body_markdown, "a" * 901)
+        get article.path
+        expect(response.body).to include("body-billboard-container")
+      end
+    end
+
+    context "when a mid-comments billboard exists" do
+      it "does not render the billboard if there are fewer than 6 root comments" do
+        create_list(:comment, 6, commentable: article)
+        get article.path
+        expect(response.body).not_to include("mid-comments-billboard-container")
+      end
+
+      it "renders the billboard if there are 6 or more root comments" do
+        create_list(:comment, 7, commentable: article)
+        get article.path
+        expect(response.body).to include("mid-comments-billboard-container")
+      end
+
+      it "does not render the billboard when the first comment has too few children" do
+        create(:comment, commentable: article, score: 100)
+        create_list(:comment, 4, commentable: article, parent: Comment.last)
+        create(:comment, commentable: article, score: 2)
+        get article.path
+        expect(response.body).not_to include("mid-comments-billboard-container")
+      end
+
+      it "renders the billboard when the first comment has enough children" do
+        create(:comment, commentable: article, score: 100)
+        create_list(:comment, 5, commentable: article, parent: Comment.last)
+        create(:comment, commentable: article, score: 2)
+        get article.path
+        expect(response.body).to include("mid-comments-billboard-container")
       end
     end
   end

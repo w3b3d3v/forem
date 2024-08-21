@@ -4,12 +4,15 @@ class AdminMenu
   # On second level navigation with more children, we reference the default tabs controller. i.e look at developer_tools
   # rubocop:disable Metrics/BlockLength
   ITEMS = Menu.define do
-    scope :members, "group-2-line", [
-      item(name: "members", controller: "users", parent: "users"),
+    scope :member_manager, "group-2-line", [
+      item(name: "members", controller: "users"),
+      item(name: "invited members", controller: "invitations"),
+      item(name: "gdpr actions", controller: "gdpr_delete_requests"),
+      item(name: "bulk assign role", controller: "bulk_assign_role"),
     ]
 
     scope :content_manager, "dashboard-line", [
-      item(name: "spaces", controller: "spaces", visible: -> { FeatureFlag.exist?(:limit_post_creation_to_admins) }),
+      item(name: "spaces", controller: "spaces"),
       item(name: "posts", controller: "articles"),
       item(name: "comments", controller: "comments"),
       item(name: "badges", children: [
@@ -23,11 +26,10 @@ class AdminMenu
 
     scope :customization, "tools-line", [
       item(name: "config"),
-      item(name: "html variants", controller: "html_variants"),
-      item(name: "display ads"),
+      item(name: "billboards"),
       item(name: "navigation links"),
       item(name: "pages"),
-      item(name: "profile fields", visible: -> { FeatureFlag.enabled?(:profile_admin) }),
+      item(name: "profile fields"),
     ]
 
     scope :admin_team, "user-line", [
@@ -37,17 +39,15 @@ class AdminMenu
     scope :moderation, "mod", [
       item(name: "reports"),
       item(name: "mods"),
-      item(name: "moderator actions ads", controller: "moderator_actions"),
+      item(name: "moderator actions", controller: "moderator_actions"),
       item(name: "privileged reactions"),
     ]
 
     scope :advanced, "flashlight-line", [
       item(name: "broadcasts"),
       item(name: "response templates"),
-      item(name: "sponsorships"),
       item(name: "developer tools", controller: "tools", children: [
              item(name: "tools"),
-             item(name: "vault secrets", controller: "secrets"),
              item(name: "data update scripts", visible: -> { FeatureFlag.enabled?(:data_update_scripts) }),
              item(name: "extensions", controller: "extensions"),
            ]),
@@ -55,7 +55,7 @@ class AdminMenu
 
     scope :apps, "palette-line", [
       item(name: "consumer apps", controller: "consumer_apps"),
-      item(name: "listings"),
+      item(name: "listings", visible: -> { Listing.feature_enabled? }),
       item(name: "welcome"),
     ]
   end.freeze

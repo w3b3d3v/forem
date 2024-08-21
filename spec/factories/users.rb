@@ -12,11 +12,11 @@ FactoryBot.define do
     name do
       "#{Faker::Name.first_name} \"#{Faker::Name.first_name}\" \\:/ #{Faker::Name.last_name}"
     end
-    email                        { generate :email }
-    username                     { generate :username }
+    email                        { generate(:email) }
+    username                     { generate(:username) }
     profile_image                { Rack::Test::UploadedFile.new(image_path, "image/jpeg") }
-    twitter_username             { generate :twitter_username }
-    github_username              { generate :github_username }
+    twitter_username             { generate(:twitter_username) }
+    github_username              { generate(:github_username) }
     confirmed_at                 { Time.current }
     saw_onboarding               { true }
     checked_code_of_conduct      { true }
@@ -25,14 +25,17 @@ FactoryBot.define do
     signup_cta_variant           { "navbar_basic" }
 
     trait :with_identity do
-      transient { identities { Authentication::Providers.available } }
+      transient do
+        identities { Authentication::Providers.available }
+        uid { nil }
+      end
 
       after(:create) do |user, options|
         options.identities.each do |provider|
           auth = OmniAuth.config.mock_auth.fetch(provider.to_sym)
           create(
             :identity,
-            user: user, provider: provider, uid: auth.uid, auth_data_dump: auth,
+            user: user, provider: provider, uid: options.uid || auth.uid, auth_data_dump: auth,
           )
         end
       end
@@ -66,6 +69,10 @@ FactoryBot.define do
 
     trait :admin do
       after(:build) { |user| user.add_role(:admin) }
+    end
+
+    trait :super_moderator do
+      after(:build) { |user| user.add_role(:super_moderator) }
     end
 
     trait :single_resource_admin do
@@ -105,6 +112,22 @@ FactoryBot.define do
 
     trait :suspended do
       after(:build) { |user| user.add_role(:suspended) }
+    end
+
+    trait :warned do
+      after(:build) { |user| user.add_role(:warned) }
+    end
+
+    trait :comment_suspended do
+      after(:build) { |user| user.add_role(:comment_suspended) }
+    end
+
+    trait :limited do
+      after(:build) { |user| user.add_role(:limited) }
+    end
+
+    trait :spam do
+      after(:build) { |user| user.add_role(:spam) }
     end
 
     trait :invited do

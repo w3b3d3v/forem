@@ -14,6 +14,7 @@ namespace :admin do
 
     mount Sidekiq::Web => "sidekiq"
     mount FieldTest::Engine, at: "abtests"
+    get "abtests/experiments/:experiment_id/:goal", to: "/field_test/experiments#goal"
 
     flipper_ui = Flipper::UI.app(Flipper,
                                  { rack_protection: { except: %i[authenticity_token form_token json_csrf
@@ -22,7 +23,6 @@ namespace :admin do
     mount PgHero::Engine, at: "pghero"
   end
 
-  resources :invitations, only: %i[index new create destroy]
   resources :organization_memberships, only: %i[update destroy create]
   resources :permissions, only: %i[index]
   resources :reactions, only: %i[update]
@@ -39,32 +39,45 @@ namespace :admin do
     resources :user_experiences, only: [:create]
   end
 
-  namespace :users do
-    resources :gdpr_delete_requests, only: %i[index destroy]
-  end
+  scope :member_manager do
+    resources :users, only: %i[index show update destroy] do
+      resources :email_messages, only: :show
+      collection do
+        get "export"
+      end
 
-  resources :users, only: %i[index show update destroy] do
-    resources :email_messages, only: :show
-
-    member do
-      post "banish"
-      post "export_data"
-      post "full_delete"
-      patch "user_status"
-      post "merge"
-      delete "remove_identity"
-      post "send_email"
-      post "verify_email_ownership"
-      patch "unlock_access"
-      post "unpublish_all_articles"
+      member do
+        post "banish"
+        patch "reputation_modifier"
+        patch "max_score"
+        post "export_data"
+        post "full_delete"
+        patch "user_status"
+        post "add_tag_mod_role"
+        post "merge"
+        delete "remove_identity"
+        post "send_email"
+        post "verify_email_ownership"
+        post "send_email_confirmation"
+        patch "unlock_access"
+        post "unpublish_all_articles"
+      end
     end
+
+    resources :invitations, only: %i[index new create destroy] do
+      member do
+        post "resend"
+      end
+    end
+
+    resources :gdpr_delete_requests, only: %i[index destroy]
+
+    resources :bulk_assign_role, only: %i[index]
+    post "/bulk_assign_role", to: "bulk_assign_role#assign_role"
   end
 
   scope :content_manager do
-    # This is a temporary constraint as we work towards releasing https://github.com/orgs/forem/projects/46/views/1
-    constraints(->(_request) { FeatureFlag.exist?(:limit_post_creation_to_admins) }) do
-      resources :spaces, only: %i[index update]
-    end
+    resources :spaces, only: %i[index update]
     resources :articles, only: %i[index show update] do
       member do
         delete :unpin
@@ -76,8 +89,8 @@ namespace :admin do
     resources :badge_achievements, only: %i[index destroy]
     get "/badge_achievements/award_badges", to: "badge_achievements#award"
     post "/badge_achievements/award_badges", to: "badge_achievements#award_badges"
-    resources :comments, only: [:index]
-    resources :organizations, only: %i[index show] do
+    resources :comments, only: %i[index show]
+    resources :organizations, only: %i[index show destroy] do
       member do
         patch "update_org_credits"
       end
@@ -96,17 +109,12 @@ namespace :admin do
   scope :customization do
     # We renamed the controller but don't want to change the route (yet)
     resource :config, controller: "settings"
-    resources :display_ads, only: %i[index edit update new create destroy]
+    resources :billboards, only: %i[index edit update new create destroy]
     resources :html_variants, only: %i[index edit update new create show destroy]
     resources :navigation_links, only: %i[index update create destroy]
     resources :pages, only: %i[index new create edit update destroy]
-
-    # NOTE: The next two resources have a temporary constraint while profile
-    # generalization is still WIP
-    constraints(->(_request) { FeatureFlag.enabled?(:profile_admin) }) do
-      resources :profile_field_groups, only: %i[update create destroy]
-      resources :profile_fields, only: %i[index update create destroy]
-    end
+    resources :profile_field_groups, only: %i[update create destroy]
+    resources :profile_fields, only: %i[index update create destroy]
   end
 
   scope :moderation do
@@ -126,12 +134,11 @@ namespace :admin do
   scope :advanced do
     resources :broadcasts
     resources :response_templates, only: %i[index new edit create update destroy]
-    resources :secrets, only: %i[index]
-    put "secrets", to: "secrets#update"
-    resources :sponsorships, only: %i[index edit update new create destroy]
     resources :tools, only: %i[index create] do
       collection do
         post "bust_cache"
+        get "feed_playground"
+        post "feed_playground"
       end
     end
 

@@ -2,10 +2,37 @@ import { h, render } from 'preact';
 import { Snackbar, addSnackbarItem } from '../Snackbar';
 import { addFullScreenModeControl } from '../utilities/codeFullscreenModeSwitcher';
 import { initializeDropdown } from '../utilities/dropdownUtils';
+import { setupBillboardInteractivity } from '../utilities/billboardInteractivity';
 import { embedGists } from '../utilities/gist';
 import { initializeUserSubscriptionLiquidTagContent } from '../liquidTags/userSubscriptionLiquidTag';
+import { trackCommentClicks } from '@utilities/ahoy/trackEvents';
+import { isNativeAndroid, copyToClipboard } from '@utilities/runtime';
 
-/* global Runtime */
+// Open in new tab backfill
+// We added this behavior on rendering, so this is a backfill for the existing articles
+function backfillLinkTarget() {
+  const links = document.querySelectorAll('a[href]');
+  const appDomain = window.location.hostname;
+
+  links.forEach((link) => {
+    const href = link.getAttribute('href');
+
+    if (href && (href.startsWith('http://') || href.startsWith('https://')) && !href.includes(appDomain)) {
+      link.setAttribute('target', '_blank');
+      
+      const existingRel = link.getAttribute('rel');
+      const newRelValues = ["noopener", "noreferrer"];
+
+      if (existingRel) {
+        const existingRelValues = existingRel.split(" ");
+        const mergedRelValues = [...new Set([...existingRelValues, ...newRelValues])].join(" ");
+        link.setAttribute('rel', mergedRelValues);
+      } else {
+        link.setAttribute('rel', newRelValues.join(" "));
+      }
+    }
+  });
+}
 
 const animatedImages = document.querySelectorAll('[data-animated="true"]');
 if (animatedImages.length > 0) {
@@ -33,6 +60,20 @@ if (snackZone) {
 // eslint-disable-next-line no-restricted-globals
 top.addSnackbarItem = addSnackbarItem;
 
+const multiReactionDrawerTrigger = document.getElementById(
+  'reaction-drawer-trigger',
+);
+
+if (
+  multiReactionDrawerTrigger &&
+  multiReactionDrawerTrigger.dataset.initialized !== 'true'
+) {
+  initializeDropdown({
+    triggerElementId: 'reaction-drawer-trigger',
+    dropdownContentId: 'reaction-drawer',
+  });
+}
+
 // Dropdown accessibility
 function hideCopyLinkAnnouncerIfVisible() {
   document.getElementById('article-copy-link-announcer').hidden = true;
@@ -42,7 +83,7 @@ function hideCopyLinkAnnouncerIfVisible() {
 const shareDropdownButton = document.getElementById('article-show-more-button');
 
 if (shareDropdownButton.dataset.initialized !== 'true') {
-  if (Runtime.isNativeAndroid('shareText')) {
+  if (isNativeAndroid('shareText')) {
     // Android native apps have enhanced sharing capabilities for Articles and don't use our standard dropdown
     shareDropdownButton.addEventListener('click', () =>
       AndroidBridge.shareText(location.href),
@@ -72,11 +113,20 @@ function showAnnouncer() {
   document.getElementById('article-copy-link-announcer').hidden = false;
 }
 
+function focusOnComments() {
+  if (location.hash === '#comments') {
+    //handle focus event on text area
+    const element = document.getElementById('text-area');
+    const event = new FocusEvent('focus');
+    element.dispatchEvent(event);
+  }
+}
+
 function copyArticleLink() {
   const postUrlValue = document
     .getElementById('copy-post-url-button')
     .getAttribute('data-postUrl');
-  Runtime.copyToClipboard(postUrlValue).then(() => {
+  copyToClipboard(postUrlValue).then(() => {
     showAnnouncer();
   });
 }
@@ -135,4 +185,9 @@ getCsrfToken().then(async () => {
 const targetNode = document.querySelector('#comments');
 targetNode && embedGists(targetNode);
 
+setupBillboardInteractivity();
 initializeUserSubscriptionLiquidTagContent();
+focusOnComments();
+// Temporary Ahoy Stats for comment section clicks on controls
+trackCommentClicks('comments');
+backfillLinkTarget();

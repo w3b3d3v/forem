@@ -1,6 +1,6 @@
 <header class="flex items-center mb-6">
-  <h2 class="crayons-title">Response templates</h2>
-  <a href="<%= new_admin_response_template_path %>" class="btn btn-primary ml-auto" role="button">Create new template</a>
+  <h1 class="crayons-title">Response templates</h1>
+  <a href="<%= new_admin_response_template_path %>" class="crayons-btn ml-auto" role="button">Create new template</a>
 </header>
 
 <%= paginate @response_templates %>
@@ -10,7 +10,7 @@
     <tr>
       <th scope="col">Title</th>
       <th scope="col">Type Of</th>
-      <th scope="col">User ID</th>
+      <th scope="col">User</th>
     </tr>
   </thead>
   <tbody class="crayons-card">
@@ -24,7 +24,7 @@
         </td>
         <td>
           <% if response_template.user_id.present? %>
-            <a href="<%= admin_user_path(response_template.user_id) %>"><%= response_template.user_id %></a>
+            <%= link_to "@#{response_template.user.username}", user_url(response_template.user), target: "_blank", rel: :noopener %>
           <% end %>
         </td>
       </tr>

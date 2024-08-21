@@ -1,10 +1,10 @@
 require "rails_helper"
 
-RSpec.describe Articles::Feeds::LargeForemExperimental, type: :system, js: true do
+RSpec.describe Articles::Feeds::LargeForemExperimental, js: true do
   let(:user) { create(:user) }
   let(:second_user) { create(:user) }
   let!(:hot_story) do
-    create(:article, hotness_score: 1000, score: 1000, published_at: 3.hours.ago, user_id: second_user.id)
+    create(:article, :past, hotness_score: 1000, score: 1000, past_published_at: 3.hours.ago, user_id: second_user.id)
   end
 
   before do

@@ -2,6 +2,10 @@
 module Notifications
   module NotifiableAction
     class Send
+      def self.call(...)
+        new(...).call
+      end
+
       # @param notifiable [Article]
       # @param action [String] for now only "Published"
       def initialize(notifiable, action = nil)
@@ -10,10 +14,6 @@ module Notifications
       end
 
       delegate :user_data, :article_data, :organization_data, to: Notifications
-
-      def self.call(...)
-        new(...).call
-      end
 
       def call
         return unless notifiable.is_a?(Article)
@@ -37,6 +37,8 @@ module Notifications
         # they post under an organization.
         article_followers -= [notifiable.user]
 
+        # TODO: If article.followers were refactored to be scope-based, this could
+        # update to use User.recently_active (which was originally based on this)
         article_followers.sort_by(&:updated_at).last(10_000).reverse_each do |follower|
           now = Time.current
           notifications_attributes.push(
@@ -54,11 +56,23 @@ module Notifications
         return if notifications_attributes.blank?
 
         upsert_index = choose_upsert_index(action)
-        Notification.upsert_all(
-          notifications_attributes,
-          unique_by: upsert_index,
-          returning: %i[id],
-        )
+
+        context_notification_attributes = {
+          context_id: notifiable.id,
+          context_type: notifiable.class.name,
+          action: action
+        }
+
+        ActiveRecord::Base.transaction do
+          Notification.upsert_all(
+            notifications_attributes,
+            unique_by: upsert_index,
+            returning: %i[id],
+          )
+
+          ContextNotification.upsert(context_notification_attributes,
+                                     unique_by: :index_context_notification_on_context_and_action)
+        end
       end
 
       private

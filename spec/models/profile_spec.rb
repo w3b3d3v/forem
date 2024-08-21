@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe Profile, type: :model do
+RSpec.describe Profile do
   let(:user) { create(:user) }
   let(:profile) { user.profile }
 
@@ -22,30 +22,48 @@ RSpec.describe Profile, type: :model do
       it "is not valid if the summary is too long and the user is not grandfathered" do
         profile.summary = invalid_summary
         expect(profile).not_to be_valid
-        expect(profile.errors_as_sentence).to eq "Summary is too long"
+        expect(profile.errors_as_sentence).to eq "Bio is too long"
       end
 
       it "is valid if the summary is less than the limit" do
         profile.summary = "Hello 👋"
         expect(profile).to be_valid
       end
+
+      it "counts line ending as a single character when summary is multi line" do
+        profile.summary = "#{'x' * ProfileValidator::MAX_SUMMARY_LENGTH.pred}\r\n"
+        expect(profile).to be_valid
+      end
     end
 
     describe "validating text areas" do
+      let(:text_area_get) { ProfileField.find_by(label: "Test Text Area")&.attribute_name }
+      let(:text_area_set) { "#{text_area_get}=" }
+
       before do
         create(:profile_field, label: "Test Text Area", input_type: :text_area)
       end
 
       it "is valid if the text is short enough" do
-        profile.test_text_area = "Ruby"
+        profile.public_send(text_area_set, "Ruby")
         expect(profile).to be_valid
       end
 
       it "is invalid if the text is too long" do
-        profile.test_text_area = "x" * ProfileValidator::MAX_TEXT_AREA_LENGTH.next
+        profile.public_send(text_area_set, "x" * ProfileValidator::MAX_TEXT_AREA_LENGTH.next)
         expect(profile).not_to be_valid
         expect(profile.errors_as_sentence)
-          .to eq "Test text area is too long (maximum is 200 characters)"
+          .to include("is too long (maximum is 200 characters)")
+      end
+
+      it "is valid if text contains new-lines within 200 characters" do
+        profile.public_send(
+          text_area_set,
+          "Lorem Ipsum is simply dummy text of the printing and typesetting industry\r\nLorem Ipsum is simply dummy
+text of the printing and typesetting industry\r\nLorem Ipsum is simply dummy text of the printing and",
+        )
+
+        expect(profile).to be_valid
       end
     end
 
@@ -89,9 +107,12 @@ RSpec.describe Profile, type: :model do
 
     let(:profile) { described_class.new }
 
+    let(:test1) { ProfileField.find_by(label: "Test 1").attribute_name }
+    let(:test2) { ProfileField.find_by(label: "Test 2").attribute_name }
+
     it "defines accessors for active profile fields", :aggregate_failures do
-      expect(profile).to respond_to(:test1)
-      expect(profile).to respond_to(:test2)
+      expect(profile).to respond_to(test1)
+      expect(profile).to respond_to(test2)
     end
   end
 end

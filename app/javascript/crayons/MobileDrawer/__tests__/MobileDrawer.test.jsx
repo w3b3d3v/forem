@@ -2,10 +2,16 @@ import { h } from 'preact';
 import { axe } from 'jest-axe';
 import '@testing-library/jest-dom';
 import { render, waitFor } from '@testing-library/preact';
-import userEvent from '@testing-library/user-event';
+import { userEvent } from '@testing-library/user-event';
 import { MobileDrawer } from '../MobileDrawer';
 
 describe('<MobileDrawer />', () => {
+  let user;
+
+  beforeEach(() => {
+    user = userEvent.setup();
+  });
+
   it('should have no a11y violations', async () => {
     const { container } = render(
       <MobileDrawer title="Example MobileDrawer">
@@ -43,29 +49,30 @@ describe('<MobileDrawer />', () => {
     });
     await waitFor(() => expect(innerDrawerButton).toHaveFocus());
 
-    userEvent.tab();
+    await user.keyboard('{Tab}');
     expect(
       getByRole('button', { name: 'Inside drawer button 2' }),
     ).toHaveFocus();
 
-    userEvent.tab();
+    await user.keyboard('{Tab}');
     expect(innerDrawerButton).toHaveFocus();
   });
 
-  it('should close when Escape is pressed', () => {
+  it('should close when Escape is pressed', async () => {
     const onClose = jest.fn();
-    const { container } = render(
+    render(
       <MobileDrawer title="Example MobileDrawer" onClose={onClose}>
         <button>Inner button</button>
       </MobileDrawer>,
     );
 
-    userEvent.type(container, '{esc}');
+    await user.keyboard('{Escape}');
     expect(onClose).toHaveBeenCalled();
   });
 
-  it('should close on click outside', () => {
+  it('should close on click outside', async () => {
     const onClose = jest.fn();
+
     const { getByText } = render(
       <div>
         <p>Outside content</p>
@@ -76,7 +83,7 @@ describe('<MobileDrawer />', () => {
       </div>,
     );
 
-    userEvent.click(getByText('Outside content'));
+    await user.click(getByText('Outside content'));
     expect(onClose).toHaveBeenCalled();
   });
 });

@@ -1,5 +1,9 @@
 module Users
   class Delete
+    def self.call(...)
+      new(...).call
+    end
+
     def initialize(user)
       @user = user
     end
@@ -7,16 +11,13 @@ module Users
     def call
       delete_comments
       delete_articles
+      delete_podcasts
       delete_user_activity
-      user.unsubscribe_from_newsletters
+      user.remove_from_mailchimp_newsletters
       EdgeCache::Bust.call("/#{user.username}")
-      Users::SuspendedUsername.create_from_user(user) if user.suspended?
+      Users::SuspendedUsername.create_from_user(user) if user.spam_or_suspended?
       user.destroy
       Rails.cache.delete("user-destroy-token-#{user.id}")
-    end
-
-    def self.call(...)
-      new(...).call
     end
 
     private
@@ -33,6 +34,10 @@ module Users
 
     def delete_articles
       DeleteArticles.call(user)
+    end
+
+    def delete_podcasts
+      DeletePodcasts.call(user)
     end
   end
 end

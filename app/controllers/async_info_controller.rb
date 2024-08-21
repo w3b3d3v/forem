@@ -1,27 +1,31 @@
+# @note No pundit policy. All actions are unrestricted.
 class AsyncInfoController < ApplicationController
-  # No pundit policy. All actions are unrestricted.
+  NUMBER_OF_MINUTES_FOR_CACHE_EXPIRY = 15
+  before_action :set_cache_control_headers, only: %i[navigation_links]
 
   def base_data
     flash.discard(:notice)
-    unless user_signed_in?
+    if user_signed_in?
+      @user = current_user.decorate
+      respond_to do |format|
+        format.json do
+          render json: {
+            broadcast: broadcast_data,
+            param: request_forgery_protection_token,
+            token: form_authenticity_token,
+            user: user_data,
+            client_geolocation: client_geolocation,
+            default_email_optin_allowed: default_email_optin_allowed?,
+            creator: user_is_a_creator
+          }
+        end
+      end
+    else
       render json: {
         broadcast: broadcast_data,
         param: request_forgery_protection_token,
         token: form_authenticity_token
       }
-      return
-    end
-    @user = current_user.decorate
-    respond_to do |format|
-      format.json do
-        render json: {
-          broadcast: broadcast_data,
-          param: request_forgery_protection_token,
-          token: form_authenticity_token,
-          user: user_data,
-          creator: user_is_a_creator
-        }
-      end
     end
   end
 
@@ -36,30 +40,13 @@ class AsyncInfoController < ApplicationController
     }.to_json
   end
 
+  # @note The `user_cache_key` uses `current_user` and this method assumes `@user` which is a
+  #       decorated version of the user.  It would be nice if we were using the same "variable" for
+  #       the cache key and for that which we cache.
   def user_data
-    Rails.cache.fetch(user_cache_key, expires_in: 15.minutes) do
-      {
-        id: @user.id,
-        name: @user.name,
-        username: @user.username,
-        profile_image_90: @user.profile_image_url_for(length: 90),
-        followed_tags: @user.cached_followed_tags.to_json,
-        followed_podcast_ids: @user.cached_following_podcasts_ids,
-        reading_list_ids: @user.cached_reading_list_article_ids,
-        blocked_user_ids: UserBlock.cached_blocked_ids_for_blocker(@user.id),
-        saw_onboarding: @user.saw_onboarding,
-        checked_code_of_conduct: @user.checked_code_of_conduct,
-        checked_terms_and_conditions: @user.checked_terms_and_conditions,
-        display_sponsors: @user.display_sponsors,
-        display_announcements: @user.display_announcements,
-        trusted: @user.trusted?,
-        moderator_for_tags: @user.moderator_for_tags,
-        config_body_class: @user.config_body_class,
-        feed_style: feed_style_preference,
-        created_at: @user.created_at,
-        admin: @user.any_admin?,
-        apple_auth: @user.email.to_s.end_with?("@privaterelay.appleid.com")
-      }
+    Rails.cache.fetch("#{current_user.cache_key_with_version}/user-info",
+                      expires_in: NUMBER_OF_MINUTES_FOR_CACHE_EXPIRY.minutes) do
+      AsyncInfo.to_hash(user: @user, context: self)
     end.to_json
   end
 
@@ -67,15 +54,9 @@ class AsyncInfoController < ApplicationController
     @user.creator?
   end
 
-  def user_cache_key
-    "user-info-#{current_user&.id}__
-    #{current_user&.last_sign_in_at}__
-    #{current_user&.following_tags_count}__
-    #{current_user&.last_followed_at}__
-    #{current_user&.last_reacted_at}__
-    #{current_user&.updated_at}__
-    #{current_user&.reactions_count}__
-    #{current_user&.articles_count}__
-    #{current_user&.blocking_others_count}__"
+  def navigation_links
+    # We're sending HTML over the wire hence 'render layout: false' enforces rails NOT TO look for a layout file to wrap
+    # the view file - it allows us to not include the HTML headers for sending back to client.
+    render layout: false
   end
 end

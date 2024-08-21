@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe "Creator config edit", type: :system, js: true do
+RSpec.describe "Creator config edit", js: true do
   let(:admin) { create(:user, :super_admin) }
 
   context "when a creator browses /admin/customization/config" do
@@ -14,7 +14,7 @@ RSpec.describe "Creator config edit", type: :system, js: true do
       find("summary", text: "Authentication").click
 
       Authentication::Providers.available_providers.each do |provider|
-        element = find(".config-authentication__item--label", text: /#{provider.official_name}/i)
+        element = find(".config-authentication__item--label", text: provider.official_name)
         expect(element).not_to be_nil
       end
     end

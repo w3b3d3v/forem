@@ -7,6 +7,12 @@ module Api
 
       respond_to :json
 
+      # Informs the application that all actions taking by this controller (and it's subclasses) are
+      # considered an api_action.
+      self.api_action = true
+
+      after_action :add_deprecation_warning_header
+
       rescue_from ActionController::ParameterMissing do |exc|
         error_unprocessable_entity(exc.message)
       end
@@ -38,7 +44,7 @@ module Api
       def authenticate!
         user = authenticate_with_api_key_or_current_user
         return error_unauthorized unless user
-        return error_unauthorized if @user.suspended?
+        return error_unauthorized if @user.spam_or_suspended?
 
         true
       end
@@ -51,8 +57,8 @@ module Api
       #
       # @return [User, NilClass]
       #
-      # @see {#pundit_user} for one way we use this method
-      # @see {#authenticate_with_api_key_or_current_user} for the logic of building the user.
+      # @see #pundit_user
+      # @see #authenticate_with_api_key_or_current_user
       #
       # @note We could memoize the `@user ||=` but Rubocop wants to rename that to
       #       `authenticate_with_api_key_or_current_user` which would be bad as descendant classes
@@ -66,13 +72,22 @@ module Api
 
       # Checks if the user is authenticated, if not respond with an HTTP 401 Unauthorized
       #
-      # @see {authenticate_with_api_key_or_current_user}
+      # @see #authenticate_with_api_key_or_current_user
       def authenticate_with_api_key_or_current_user!
         # [@jeremyf] Note, I'm not relying on the other method setting the instance variable, but
         # instead relying on the returned value.  This insulates us from an implementation detail
         # (namely should we use @user or current_user, which is a bit soupy in the API controller).
         user = authenticate_with_api_key_or_current_user
         error_unauthorized unless user
+      end
+
+      def add_deprecation_warning_header
+        return if headers["Accept"].present? &&
+          headers["Accept"].include?("application/vnd.forem.api-v#{@version}+json")
+
+        # rubocop:disable Layout/LineLength
+        response.headers["Warning"] = "299 - This endpoint is part of the V0 (beta) API. To start using the V1 endpoints add the `Accept` header and set it to `application/vnd.forem.api-v1+json`. Visit https://developers.forem.com/api for more information."
+        # rubocop:enable Layout/LineLength
       end
 
       private
@@ -89,7 +104,7 @@ module Api
       #       altering the implementation details of the `authenticate_with_api_key_or_current_user`
       #       function by introducing memoization.
       #
-      # @see {#authenticate_with_api_key_or_current_user}
+      # @see #authenticate_with_api_key_or_current_user
       def pundit_user
         # What's going on here?
         @pundit_user ||= @user || authenticate_with_api_key_or_current_user
@@ -105,7 +120,7 @@ module Api
         # guard against timing attacks
         # see <https://www.slideshare.net/NickMalcolm/timing-attacks-and-ruby-on-rails>
         secure_secret = ActiveSupport::SecurityUtils.secure_compare(api_secret.secret, api_key)
-        return api_secret.user if secure_secret
+        api_secret.user if secure_secret
       end
     end
   end

@@ -1,7 +1,8 @@
 import { getInstantClick } from '../topNavigation/utilities';
+import { waitOnBaseData } from '../utilities/waitOnBaseData';
 import { locale } from '@utilities/locale';
 
-/* global showLoginModal  userData  showModalAfterError*/
+/* global showLoginModal  userData  showModalAfterError browserStoreCache */
 
 /**
  * Sets the text content of the button to the correct 'Follow' state
@@ -207,11 +208,19 @@ function handleFollowButtonClick({ target }) {
   ) {
     const userStatus = document.body.getAttribute('data-user-status');
     if (userStatus === 'logged-out') {
-      showLoginModal();
+      let trackingData = {};
+      if (determineSecondarySource(target)) {
+        trackingData = {
+          referring_source: determineSecondarySource(target),
+          trigger: 'follow_button',
+        };
+      }
+      showLoginModal(trackingData);
       return;
     }
 
     optimisticallyUpdateButtonUI(target);
+    browserStoreCache('remove');
 
     const { verb } = target.dataset;
 
@@ -238,6 +247,18 @@ function handleFollowButtonClick({ target }) {
           });
         }
       });
+  }
+}
+
+/**
+ * Determines where the click came from for event tracking
+ */
+function determineSecondarySource(target) {
+  // The follow user buttons have both follow-action-button and follow-user
+  // classnames on them. For now we only want to
+  // implement tracking for follow-user.
+  if (target.classList.contains('follow-user')) {
+    return 'user';
   }
 }
 
@@ -390,32 +411,36 @@ function initializeNonUserFollowButtons() {
     '.follow-action-button:not(.follow-user):not([data-fetched])',
   );
 
-  const userLoggedIn =
-    document.body.getAttribute('data-user-status') === 'logged-in';
+  waitOnBaseData().then(() => {
+    const userLoggedIn =
+      document.body.getAttribute('data-user-status') === 'logged-in';
 
-  const user = userLoggedIn ? userData() : null;
+    const user = userLoggedIn ? userData() : null;
+    const followedTags = user
+      ? JSON.parse(user.followed_tags).map((tag) => tag.id)
+      : [];
 
-  const followedTags = user
-    ? JSON.parse(user.followed_tags).map((tag) => tag.id)
-    : [];
+    const followedTagIds = new Set(followedTags);
 
-  const followedTagIds = new Set(followedTags);
-
-  nonUserFollowButtons.forEach((button) => {
-    const { info } = button.dataset;
-    const buttonInfo = JSON.parse(info);
-    const { className, name } = buttonInfo;
-    addAriaLabelToButton({ button, followType: className, followName: name });
-    if (className === 'Tag' && user) {
-      // We don't need to make a network request to 'fetch' the status of tag buttons
-      button.dataset.fetched = true;
-      const initialButtonFollowState = followedTagIds.has(buttonInfo.id)
-        ? 'true'
-        : 'false';
-      updateInitialButtonUI(initialButtonFollowState, button);
-    } else {
-      fetchFollowButtonStatus(button, buttonInfo);
-    }
+    nonUserFollowButtons.forEach((button) => {
+      const { info } = button.dataset;
+      const buttonInfo = JSON.parse(info);
+      const { className, name } = buttonInfo;
+      addAriaLabelToButton({ button, followType: className, followName: name });
+      if (user === null) {
+        return; // No need to fetch the status if the user is logged out
+      }
+      if (className === 'Tag' && user) {
+        // We don't need to make a network request to 'fetch' the status of tag buttons
+        button.dataset.fetched = true;
+        const initialButtonFollowState = followedTagIds.has(buttonInfo.id)
+          ? 'true'
+          : 'false';
+        updateInitialButtonUI(initialButtonFollowState, button);
+      } else {
+        fetchFollowButtonStatus(button, buttonInfo);
+      }
+    });
   });
 }
 

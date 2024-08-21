@@ -2,7 +2,7 @@
 
 /* eslint-disable no-multi-str */
 
-function buildArticleHTML(article) {
+function buildArticleHTML(article, currentUserId = null) {
   var tagIcon = `<svg width="24" height="24" viewBox="0 0 24 24" class="crayons-icon" xmlns="http://www.w3.org/2000/svg"><path d="M7.784 14l.42-4H4V8h4.415l.525-5h2.011l-.525 5h3.989l.525-5h2.011l-.525 5H20v2h-3.784l-.42 4H20v2h-4.415l-.525 5h-2.011l.525-5H9.585l-.525 5H7.049l.525-5H4v-2h3.784zm2.011 0h3.99l.42-4h-3.99l-.42 4z"/></svg>`;
   if (article && article.class_name === 'Tag') {
     return `<article class="crayons-story">
@@ -48,6 +48,83 @@ function buildArticleHTML(article) {
       </article>`;
   }
 
+  if (article && article.class_name === 'Organization') {
+    const html = `
+      <article class="crayons-story">
+        <div class="crayons-story__body flex items-start gap-2">
+          <a href="${article.slug}" class="crayons-podcast-episode__cover">
+            <img src="${article.profile_image.url}" alt="" loading="lazy" />
+          </a>
+          <div>
+            <h3 class="crayons-subtitle-2 lh-tight py-1">
+              <a href="${article.slug}" class="c-link"> ${article.name} </a>
+            </h3>
+            <p class="crayons-story__slug-segment">@${article.slug}</p>
+            ${
+              article.summary
+                ? `<div class="truncate-at-3 top-margin-4">${article.summary}</div>`
+                : ''
+            }
+          </div>
+          <div class="print-hidden" style="margin-left: auto">
+            <button class="crayons-btn follow-action-button whitespace-nowrap follow-user w-100" data-info=''>Follow</button>
+          </div>
+        </div>
+      </article>
+    `;
+
+    const parser = new DOMParser();
+    const parsedDocument = parser.parseFromString(html, 'text/html');
+    parsedDocument.querySelector('img').alt = article.name;
+    parsedDocument.querySelector('button').dataset.info = JSON.stringify({
+      id: article.id,
+      name: article.name,
+      className: 'Organization',
+      style: 'full',
+    });
+
+    return parsedDocument.body.innerHTML;
+  }
+
+  if (article && article.class_name === 'User' && article.user === undefined) { // Represents different return values for how users are fetched.
+    const html = `
+      <article class="crayons-story">
+        <div class="crayons-story__body flex items-start gap-2">
+          <a href="${article.username}" class="crayons-podcast-episode__cover">
+            <img src="${article.profile_image.url}" alt="" loading="lazy" />
+          </a>
+          <div>
+            <h3 class="crayons-subtitle-2 lh-tight py-1">
+              <a href="${article.username}" class="c-link"> ${article.name} </a>
+            </h3>
+            <p class="crayons-story__slug-segment">@${article.username}</p>
+            ${
+              article.summary
+                ? `<div class="truncate-at-3 top-margin-4">${article.summary}</div>`
+                : ''
+            }
+          </div>
+          <div class="print-hidden" style="margin-left: auto">
+            <button class="crayons-btn follow-action-button whitespace-nowrap follow-user w-100" data-info=''>Follow</button>
+          </div>
+        </div>
+      </article>
+    `;
+
+    const parser = new DOMParser();
+    const parsedDocument = parser.parseFromString(html, 'text/html');
+    parsedDocument.querySelector('img').alt = article.name;
+    parsedDocument.querySelector('button').dataset.info = JSON.stringify({
+      id: article.id,
+      name: article.name,
+      className: 'User',
+      style: 'full',
+    });
+
+    return parsedDocument.body.innerHTML;
+  }
+
+
   if (article) {
     var container = document.getElementById('index-container');
 
@@ -88,12 +165,7 @@ function buildArticleHTML(article) {
       commentsCount = article.comments_count || '0';
     }
 
-    var commentsAriaLabelText =
-      ' aria-label="Comments for post ' +
-      article.title +
-      ' (' +
-      commentsCount +
-      ')" ';
+    var commentsAriaLabelText = `aria-label="Add a comment to post - ${article.title}"`;
 
     if (article.class_name !== 'User') {
       commentsDisplay =
@@ -115,16 +187,35 @@ function buildArticleHTML(article) {
     var reactionsCount = article.public_reactions_count;
     var reactionsDisplay = '';
     var reactionsText = reactionsCount === 1 ? 'reaction' : 'reactions';
+    var reactionIcons = document.getElementById('reaction-category-resources');
 
     if (article.class_name !== 'User' && reactionsCount > 0) {
-      reactionsDisplay =
-        '<a href="' +
-        article.path +
-        '"' +
-        commentsAriaLabelText +
-        'class="crayons-btn crayons-btn--s crayons-btn--ghost crayons-btn--icon-left"><svg class="crayons-icon" width="24" height="24" xmlns="http://www.w3.org/2000/svg"><path d="M18.884 12.595l.01.011L12 19.5l-6.894-6.894.01-.01A4.875 4.875 0 0112 5.73a4.875 4.875 0 016.884 6.865zM6.431 7.037a3.375 3.375 0 000 4.773L12 17.38l5.569-5.569a3.375 3.375 0 10-4.773-4.773L9.613 10.22l-1.06-1.062 2.371-2.372a3.375 3.375 0 00-4.492.25v.001z"/></svg>' +
-        reactionsCount +
-        `<span class="hidden s:inline">&nbsp;${reactionsText}</span></a>`;
+      var icons = [];
+      for (var category of article.public_reaction_categories) {
+        var icon = reactionIcons.querySelector(
+          `img[data-slug=${category.slug}]`,
+        ).outerHTML;
+        icons = icons.concat(
+          `<span class="crayons_icon_container">${icon}</span>`,
+        );
+      }
+      icons.reverse();
+
+      reactionsDisplay = `<a href="${
+        article.path
+      }" class="crayons-btn crayons-btn--s crayons-btn--ghost crayons-btn--icon-left" data-reaction-count data-reactable-id="${
+        article.id
+      }">
+                          <div class="multiple_reactions_aggregate">
+                            <span class="multiple_reactions_icons_container" dir="rtl">
+                                ${icons.join('')}
+                            </span>
+                            <span class="aggregate_reactions_counter">
+                              <span class="hidden s:inline">${reactionsCount}&nbsp;${reactionsText}</span>
+                            </span>
+                        </span>
+                          </div>
+                        </a>`;
     }
 
     var picUrl;
@@ -137,7 +228,7 @@ function buildArticleHTML(article) {
     } else {
       picUrl = article.user.profile_image_90;
       profileUsername = article.user.username;
-      userName = article.user.name;
+      userName = filterXSS(article.user.name);
     }
     var orgHeadline = '';
     var forOrganization = '';
@@ -198,9 +289,7 @@ function buildArticleHTML(article) {
     // We need to be able to set the data-info hash attribute with escaped characters.
     // NB: Escaping apostrophes with a "/" does not have the desired effect, as we eventually render the name inside a double quoted string ""
     // To avoid complications with single quotes inside double quotes inside single quotes, we instead replace any apostrophe with its encoded value
-    var name = article.user.name
-      .replace(/'/g, '&apos;')
-      .replace(/[\\"]/g, '\\$&');
+    var name = userName.replace(/'/g, '&apos;').replace(/[\\"]/g, '\\$&');
 
     var previewCardContent = `
       <div id="story-author-preview-content-${article.id}" class="profile-preview-card__content crayons-dropdown p-4 pt-0 branded-7" data-repositioning-dropdown="true" style="border-top-color: var(--card-color);" data-testid="profile-preview-card">
@@ -210,7 +299,9 @@ function buildArticleHTML(article) {
               <span class="crayons-avatar crayons-avatar--xl mr-2 shrink-0">
                 <img src="${picUrl}" class="crayons-avatar__image" alt="" loading="lazy" />
               </span>
-              <span class="crayons-link crayons-subtitle-2 mt-5">${article.user.name}</span>
+              <span class="crayons-link crayons-subtitle-2 mt-5">
+                ${userName}
+              </span>
             </a>
           </div>
           <div class="print-hidden">
@@ -233,10 +324,10 @@ function buildArticleHTML(article) {
           <div>
             <a href="/${profileUsername}" class="crayons-story__secondary fw-medium ${
       isArticle ? 'm:hidden' : ''
-    }">${filterXSS(article.user.name)}</a>
+    }">${userName}</a>
     ${
       isArticle
-        ? `<div class="profile-preview-card relative mb-4 s:mb-0 fw-medium hidden m:inline-block"><button id="story-author-preview-trigger-${article.id}" aria-controls="story-author-preview-content-${article.id}" class="profile-preview-card__trigger fs-s crayons-btn crayons-btn--ghost p-1 -ml-1 -my-2" aria-label="${article.user.name} profile details">${article.user.name}</button>${previewCardContent}</div>`
+        ? `<div class="profile-preview-card relative mb-4 s:mb-0 fw-medium hidden m:inline-block"><button id="story-author-preview-trigger-${article.id}" aria-controls="story-author-preview-content-${article.id}" class="profile-preview-card__trigger fs-s crayons-btn crayons-btn--ghost p-1 -ml-1 -my-2" aria-label="${userName} profile details">${userName}</button>${previewCardContent}</div>`
         : ''
     }
             ${forOrganization}
@@ -278,21 +369,30 @@ function buildArticleHTML(article) {
     }
 
     var saveButton = '';
-    if (article.class_name === 'Article') {
-      saveButton =
-        '<button type="button" id="article-save-button-' +
-        article.id +
-        '" class="crayons-btn crayons-btn--secondary crayons-btn--s bookmark-button" data-reactable-id="' +
-        article.id +
-        '">\
-                      <span class="bm-initial">Save</span>\
-                      <span class="bm-success">Saved</span>\
-                    </button>';
+    var saveSVG =
+      '<svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" role="presentation"><path d="M6.75 4.5h10.5a.75.75 0 01.75.75v14.357a.375.375 0 01-.575.318L12 16.523l-5.426 3.401A.375.375 0 016 19.607V5.25a.75.75 0 01.75-.75zM16.5 6h-9v11.574l4.5-2.82 4.5 2.82V6z" /></svg>';
+    var saveFilledSVG =
+      '<svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" role="presentation"><path d="M6.75 4.5h10.5a.75.75 0 01.75.75v14.357a.375.375 0 01-.575.318L12 16.523l-5.426 3.401A.375.375 0 016 19.607V5.25a.75.75 0 01.75-.75z"/></svg>';
+    // "!=" instead of "!==" used to compare user_id and currentUserId because
+    // currentUserId is a String while user_id is an Integer
+    if (article.class_name === 'Article' && article.user_id != currentUserId) {
+      saveButton = `
+        <button
+          type="button"
+          id="article-save-button-${article.id}"
+          class="c-btn c-btn--icon-alone bookmark-button"
+          data-reactable-id="${article.id}"
+          data-article-author-id="${article.user_id}"
+          aria-label="Save post ${article.title} to reading list">
+          <span class="bm-initial crayons-icon c-btn__icon">${saveSVG}</span>
+          <span class="bm-success crayons-icon c-btn__icon">${saveFilledSVG}</span>
+        </button>
+      `;
     } else if (article.class_name === 'User') {
       saveButton = `
         <button type="button"
           class="crayons-btn crayons-btn--secondary crayons-btn--icon-left fs-s bookmark-button article-engagement-count engage-button follow-action-button follow-user"
-          data-info='{"id": ${article.id},"className":"User", "name": "${article.user.name}"}'
+          data-info='{"id": ${article.id},"className":"User", "name": "${userName}"}'
         data-follow-action-button>
           &nbsp;
         </button>`;
@@ -320,9 +420,15 @@ function buildArticleHTML(article) {
       </a>
     `;
 
+    let feedContentAttribute = '';
+    if (article.class_name === 'Article') {
+      feedContentAttribute = `data-feed-content-id="${article.id}"`;
+    }
+
     return `<article class="crayons-story"
       data-article-path="${article.path}"
       id="article-${article.id}"
+      ${feedContentAttribute}
       data-content-user-id="${article.user_id}">\
         ${navigationLink}\
         <div role="presentation">\

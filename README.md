@@ -5,15 +5,18 @@
 </div>
 <br>
 <p align="center">
-  <a href="https://app.travis-ci.com/github/forem/forem">
-    <img src="https://api.travis-ci.com/forem/forem.svg?branch=main" alt="Build Status">
+  <a href="https://github.com/forem/forem/actions/workflows/ci.yml">
+    <img src="https://github.com/forem/forem/actions/workflows/ci.yml/badge.svg" alt="Build Status">
+  </a>
+  <a href="https://github.com/forem/forem/actions/workflows/cd.yml">
+    <img src="https://github.com/forem/forem/actions/workflows/cd.yml/badge.svg" alt="Build Status">
   </a>
   <img src="https://img.shields.io/github/commit-activity/w/forem/forem" alt="GitHub commit activity">
   <a href="https://github.com/forem/forem/issues?q=is%3Aissue+is%3Aopen+label%3A%22ready+for+dev%22">
     <img src="https://img.shields.io/github/issues/forem/forem/ready for dev" alt="GitHub issues ready for dev">
   </a>
-  <a href="https://gitpod.io/from-referrer/">
-    <img src="https://img.shields.io/badge/setup-automated-blue?logo=gitpod" alt="Gitpod badge">
+  <a href="https://gitpod.io/#https://github.com/forem/forem">
+    <img src="https://img.shields.io/badge/setup-automated-blue?logo=gitpod" alt="GitPod badge">
   </a>
 </p>
 
@@ -44,26 +47,23 @@ within our community. ❤️
 - [Community](#community)
 - [Contributing](#contributing)
 - [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-    - [Local](#local)
-    - [Containers](#containers)
   - [Installation Documentation](#installation-documentation)
 - [Developer Documentation](#developer-documentation)
-- [Core team](#core-team)
 - [Vulnerability disclosure](#vulnerability-disclosure)
+- [Acknowledgements](#acknowledgements)
 - [License](#license)
 
 ## Community
 
 For a place to have open discussions on features, voice your ideas, or get help
-with general questions please visit our community at
-[forem.dev](https://forem.dev/).
+with general questions please visit the
+[discussions](https://github.com/forem/forem/discussions) section.
 
 ## Contributing
 
 We encourage you to contribute to Forem! Please check out the
-[Contributing to Forem guide](CONTRIBUTING.md) for guidelines about how to
-proceed.
+[Contributing to Forem guide](https://developers.forem.com/contributing-guide/forem)
+for guidelines about how to proceed.
 
 ## Getting Started
 
@@ -79,65 +79,19 @@ transitioning to a [Preact](https://preactjs.com/)-first frontend.
 A more complete overview of our stack is available in
 [our docs](https://developers.forem.com/technical-overview/stack).
 
-### Prerequisites
-
-#### Local
-
-- [Ruby](https://www.ruby-lang.org/en/): we recommend using
-  [rbenv](https://github.com/rbenv/rbenv) to install the Ruby version listed on
-  the badge.
-- [Yarn](https://yarnpkg.com/) 1.x: please refer to their
-  [installation guide](https://classic.yarnpkg.com/en/docs/install).
-- [PostgreSQL](https://www.postgresql.org/) 11 or higher.
-- [ImageMagick](https://imagemagick.org/): please refer to ImageMagick's
-  [installation instructions](https://imagemagick.org/script/download.php).
-- [Redis](https://redis.io/) 4 or higher.
-
-#### Containers
-
-**Linux**
-
-- [Podman](https://github.com/containers/libpod) 1.9.2 or higher
-- [Podman Compose](https://github.com/containers/podman-compose) 0.1.5 or higher
-
-**OS X**
-
-- [Docker Desktop for Mac](https://docs.docker.com/docker-for-mac/install/)
+To **launch Forem in Gitpod**, navigate to
+[https://gitpod.io/#https://github.com/{your_github_username}/forem](https://gitpod.io/#https://github.com/{your_github_username}/forem).
 
 ### Installation Documentation
 
-Please see our installation guides, such as the
-[one for macOS](https://developers.forem.com/getting-started/installation/mac).
+Please see our installation guides:
+
+- [MacOS, without containers](https://developers.forem.com/getting-started/installation/mac)
+- [Linux, without containers](https://developers.forem.com/getting-started/installation/linux)
 
 ## Developer Documentation
 
 [Check out our dedicated docs page for more technical documentation](https://developers.forem.com).
-
-## Core team
-
-- [@benhalpern](https://dev.to/ben)
-- [@jessleenyc](https://dev.to/jess)
-- [@peterkimfrank](https://dev.to/peter)
-- [@maestromac](https://dev.to/maestromac)
-- [@zhao-andy](https://dev.to/andy)
-- [@lightalloy](https://dev.to/lightalloy)
-- [@atsmith813](https://dev.to/atsmith813)
-- [@joshpuetz](http://dev.to/joshpuetz)
-- [@juliannatetreault](https://dev.to/juliannatetreault)
-- [@ridhwana](https://dev.to/ridhwana)
-- [@fdoxyz](https://dev.to/fdoxyz)
-- [@msarit](https://dev.to/msarit)
-- [@jdoss](https://dev.to/jdoss)
-- [@cmgorton](https://dev.to/coffeecraftcode)
-- [@andygeorge](https://dev.to/andygeorge)
-- [@phannon716](https://dev.to/phannon716)
-- [@s_aitchison](https://dev.to/s_aitchison)
-- [@jgaskins](https://dev.to/jgaskins)
-- [@djuber](https://dev.to/djuber)
-- [@rt4914](https://dev.to/rt4914)
-- [@jeremyf](https://dev.to/jeremyf)
-- [@dscottS3](https://dev.to/dscottS3)
-- [@asheren](https://dev.to/asheren)
 
 ## Vulnerability disclosure
 
@@ -146,10 +100,13 @@ Forem is the open source software which powers [DEV](https://dev.to).
 We welcome security research on DEV under the terms of our
 [vulnerability disclosure policy](https://dev.to/security).
 
-## Acknowledgments
+## Acknowledgements
 
 Thank you to the [Twemoji project](https://github.com/twitter/twemoji) for the
 usage of their emojis.
+
+Thank you to [Uffizzi](https://www.uffizzi.com) for providing ephemeral
+environments to preview pull requests.
 
 ## License
 
@@ -168,7 +125,8 @@ Agreement, which they generously made available to the public domain under
 Creative Commons CC0 1.0 Universal.
 
 Any questions, please refer to our
-[license FAQ](https://developers.forem.com/licensing/) doc or email yo@dev.to.
+[license FAQ](https://developers.forem.com/licensing/) doc or email
+support@dev.to.
 
 <br>
 
@@ -178,4 +136,4 @@ Any questions, please refer to our
   <strong>Happy Coding</strong> ❤️
 </p>
 
-[⬆ Back to Top](#Table-of-contents)
+[⬆ Back to Top](#table-of-contents)

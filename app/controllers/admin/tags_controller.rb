@@ -6,6 +6,7 @@ module Admin
       id supported rules_markdown short_summary pretty_name bg_color_hex
       text_color_hex user_id alias_for badge_id requires_approval
       social_preview_template wiki_body_markdown submission_template
+      suggested
     ].freeze
 
     before_action :set_default_options, only: %i[index]
@@ -23,12 +24,17 @@ module Admin
       @tag = Tag.new
     end
 
+    def edit
+      @tag = Tag.find(params[:id])
+      @tag_moderators = User.with_role(:tag_moderator, @tag).select(:id, :username)
+    end
+
     def create
       @tag = Tag.new(tag_params)
       @tag.name = params[:tag][:name].downcase
 
       if @tag.save
-        flash[:success] = "#{@tag.name} has been created!"
+        flash[:success] = I18n.t("admin.tags_controller.created", tag_name: @tag.name)
         redirect_to edit_admin_tag_path(@tag)
       else
         flash[:danger] = @tag.errors_as_sentence
@@ -36,18 +42,14 @@ module Admin
       end
     end
 
-    def edit
-      @tag = Tag.find(params[:id])
-      @tag_moderators = User.with_role(:tag_moderator, @tag).select(:id, :username)
-    end
-
     def update
       @tag = Tag.find(params[:id])
       if @tag.update(tag_params)
         ::Tags::AliasRetagWorker.perform_async(@tag.id) if tag_alias_updated?
-        flash[:success] = "#{@tag.name} tag successfully updated!"
+        flash[:success] = I18n.t("admin.tags_controller.updated", tag_name: @tag.name)
       else
-        flash[:error] = "The tag update failed: #{@tag.errors_as_sentence}"
+        flash[:error] =
+          I18n.t("admin.tags_controller.update_fail", errors: @tag.errors_as_sentence)
       end
       redirect_to edit_admin_tag_path(@tag.id)
     end

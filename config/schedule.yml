@@ -78,10 +78,30 @@ award_contributor_badges_from_github:
     - ""
     - award_contributor_from_github
     - ""
-remove_old_html_variant_data:
-  description: "Deletes old HTML variants (runs hourly on the 10th minute after the hour)"
-  cron: "10 * * * *"
-  class: "HtmlVariants::RemoveOldDataWorker"
+award_community_wellness_badges:
+  description: "Awards 'Community Wellness' badges to users (runs daily at 00:45 UTC)"
+  cron: "45 0 * * *"
+  class: "BadgeAchievements::BadgeAwardWorker"
+  args:
+    - ""
+    - award_community_wellness
+    - ""
+award_thumbs_up_badges:
+  description: "Awards Thumbs Up Milestone badge to users (runs daily at 01:00 UTC) "
+  cron: "0 1 * * *"
+  class: "BadgeAchievements::BadgeAwardWorker"
+  args:
+    - ""
+    - award_thumbs_up
+    - ""
+award_first_post_badges:
+  description: "Awards First Post badges to users (runs daily at 02:00 UTC) "
+  cron: "0 2 * * *"
+  class: "BadgeAchievements::BadgeAwardWorker"
+  args:
+    - ""
+    - award_first_post
+    - ""
 resave_supported_tags:
   description: "Resaves supported tags to recalculate scores (runs daily at 00:25 UTC)"
   cron: "25 0 * * *"
@@ -108,7 +128,7 @@ daily_home_cache_bust:
     - "/"
 send_email_digest:
   description: "Sends the email digest to users (runs at 11:30 UTC on Wednesday, Thursday, Friday, and Saturday)"
-  cron: "30 11 * * 3,4,5,6"
+  cron: "30 11 * * 1,2,3,4,5"
   class: "Emails::EnqueueDigestWorker"
 remove_old_notifications:
   description: "Deletes old notifications from the database (runs daily at 05:00 UTC)"
@@ -138,3 +158,15 @@ capture_query_stats:
   description: "Collects Postgres query stats for PGHero (runs every 5 minutes)"
   cron: "*/5 * * * *"
   class: "CaptureQueryStatsWorker"
+notify_about_published_articles:
+  description: "Sends notifications about the new published articles (runs every minute)"
+  cron: "*/5 * * * *"
+  class: "Articles::PublishWorker"
+billboard_event_rollup:
+  description: "Compact rows in the display_ad_events table"
+  cron: "5 3 * * *"
+  class: "BillboardEventRollupWorker"
+audience_segment_refresh:
+  description: "Refresh audience segmentation for all segments"
+  cron: "10 3 * * *"
+  class: "AudienceSegmentRefreshAllWorker"

@@ -4,7 +4,9 @@
       <h3 class="fw-normal fs-l s:fs-xl m:fs-2xl">
       <%= t("views.notifications.badge.heading_html", badge: tag.strong(sanitize(json_data["badge_achievement"]["badge"]["title"]), class: "fw-bold")) %>
       </h3>
-      <p class="fs-l"><%= json_data["badge_achievement"]["badge"]["description"] %></p>
+      <% if json_data["badge_achievement"]["badge"]["description"] %>
+        <p class="fs-l"><%= json_data["badge_achievement"]["badge"]["description"] %></p>
+      <% end %>
     </header>
 
     <div class="crayons-card crayons-card--secondary p-4 w-100 grid gap-2">
@@ -14,7 +16,7 @@
 
   <p class="self-stretch"><a href="<%= json_data["user"]["path"] %>" class="crayons-btn w-100 m:w-50"><%= t("views.notifications.badge.profile") %></a></p>
   <% credits_awarded = json_data["badge_achievement"]["badge"]["credits_awarded"] %>
-  <% unless credits_awarded.present? && credits_awarded.zero? %>
+  <% if credits_awarded.to_i > 0 && Listing.feature_enabled? %>
     <p class="max-w-75 mx-auto">
       <%= t("views.notifications.badge.awarded_html", credits: link_to(t("views.notifications.badge.credits", count: json_data["badge_achievement"]["badge"]["credits_awarded"]), "/credits", class: "crayons-link crayons-link--brand fw-bold"),
                                                       listings: link_to(t("views.notifications.badge.listings"), "/listings")) %>

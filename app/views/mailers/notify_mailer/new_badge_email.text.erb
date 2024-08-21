@@ -1,12 +1,12 @@
 Congratulations, <%= @user.name %>! You got the <%= @badge.title %> badge! Be sure to check out your profile.
 
-<%= @badge.description %>
+<%= @badge.description if @badge_achievement.include_default_description %>
 
 <%= strip_tags @badge_achievement.rewarding_context_message %>
 
 <%= user_url(@user) %>
 
-<% unless @badge.credits_awarded.zero? %>
+<% if @badge.credits_awarded > 0 && Listing.feature_enabled? %>
   You also get <%= @badge.credits_awarded %> new credits to use for community listings if you have anything you'd like to promote: <%= listings_url %>
 
   To manage your credits visit: <%= credits_url %>

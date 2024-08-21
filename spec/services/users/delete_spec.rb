@@ -21,14 +21,6 @@ RSpec.describe Users::Delete, type: :service do
     expect(cache_bust).to have_received(:call).with("/#{user.username}")
   end
 
-  it "deletes user's sponsorships" do
-    create(:sponsorship, user: user)
-
-    expect do
-      described_class.call(user)
-    end.to change(Sponsorship, :count).by(-1)
-  end
-
   it "deletes user's follows" do
     create(:follow, follower: user)
     create(:follow, followable: user)
@@ -44,6 +36,14 @@ RSpec.describe Users::Delete, type: :service do
     expect(Article.find_by(id: article.id)).to be_nil
   end
 
+  it "deletes user's owned podcasts" do
+    podcast = create(:podcast, creator: user)
+    create(:podcast_ownership, owner: user, podcast: podcast)
+    expect do
+      described_class.call(user)
+    end.to change(Podcast, :count).by(-1)
+  end
+
   it "deletes the destroy token" do
     allow(Rails.cache).to receive(:delete).and_call_original
     described_class.call(user)
@@ -55,7 +55,7 @@ RSpec.describe Users::Delete, type: :service do
 
     expect do
       described_class.call(user)
-    end.to change(AuditLog, :count).by(0)
+    end.not_to change(AuditLog, :count)
 
     expect(audit_log.reload.user_id).to be_nil
   end
@@ -84,7 +84,9 @@ RSpec.describe Users::Delete, type: :service do
         affected_feedback_messages
         audit_logs
         banished_users
+        billboard_events
         created_podcasts
+        feed_events
         offender_feedback_messages
         page_views
         rating_votes
@@ -135,6 +137,7 @@ RSpec.describe Users::Delete, type: :service do
     end
 
     it "keeps the kept associations" do
+      # NB: each association must have a factory defined!
       expect(kept_associations).not_to be_empty
       user.reload
       described_class.call(user)
@@ -161,6 +164,15 @@ RSpec.describe Users::Delete, type: :service do
   context "when the user was suspended" do
     it "stores a hash of the username so the user can't sign up again" do
       user = create(:user, :suspended)
+      expect do
+        described_class.call(user)
+      end.to change(Users::SuspendedUsername, :count).by(1)
+    end
+  end
+
+  context "when the user was a spammer" do
+    it "stores a hash of the username so the user can't sign up again" do
+      user = create(:user, :spam)
       expect do
         described_class.call(user)
       end.to change(Users::SuspendedUsername, :count).by(1)

@@ -1,5 +1,5 @@
 import { h } from 'preact';
-import { render } from '@testing-library/preact';
+import { render, fireEvent, waitFor } from '@testing-library/preact';
 import fetch from 'jest-fetch-mock';
 import { axe } from 'jest-axe';
 
@@ -18,7 +18,7 @@ describe('EmailPreferencesForm', () => {
         communityConfig={{
           communityName: 'Community Name',
           communityLogo: '/x.png',
-          communityBackground: '/y.jpg',
+          communityBackgroundColor: '#FFF000',
           communityDescription: 'Some community description',
         }}
         previousLocation={null}
@@ -33,6 +33,26 @@ describe('EmailPreferencesForm', () => {
       username: 'username',
     });
 
+  const fakeResponse = JSON.stringify({
+    content: `
+    <h1>Almost there!</h1>
+    <form>
+      <fieldset>
+        <ul>
+          <li class="checkbox-item">
+            <label for="email_newsletter"><input type="checkbox" id="email_newsletter" name="email_newsletter">I want to receive weekly newsletter emails.</label>
+          </li>
+        </ul>
+      </fieldset>
+    </form>
+    `,
+  });
+
+  beforeEach(() => {
+    fetch.resetMocks();
+    fetch.mockResponseOnce(fakeResponse);
+  });
+
   beforeAll(() => {
     document.head.innerHTML =
       '<meta name="csrf-token" content="some-csrf-token" />';
@@ -46,38 +66,78 @@ describe('EmailPreferencesForm', () => {
     expect(results).toHaveNoViolations();
   });
 
-  it('should load the appropriate text', () => {
-    const { queryByText } = renderEmailPreferencesForm();
-
-    expect(queryByText(/almost there!/i)).toBeDefined();
-    expect(
-      queryByText(/review your email preferences before we continue./i),
-    ).toBeDefined();
-    expect(queryByText('Email preferences')).toBeDefined();
+  it('should load the appropriate text', async () => {
+    const { findByLabelText } = renderEmailPreferencesForm();
+    await findByLabelText(/receive weekly newsletter/i);
+    expect(document.body.innerHTML).toMatchSnapshot();
   });
 
-  it('should show the two checkboxes unchecked', () => {
-    const { queryByLabelText } = renderEmailPreferencesForm();
-
-    expect(queryByLabelText(/receive weekly newsletter/i).checked).toBe(false);
-    expect(queryByLabelText(/receive a periodic digest/i).checked).toBe(false);
+  it('should show the checkbox unchecked', async () => {
+    const { findByLabelText } = renderEmailPreferencesForm();
+    const checkbox = await findByLabelText(/receive weekly newsletter/i);
+    expect(checkbox.checked).toBe(false);
   });
 
   it('should render a stepper', () => {
     const { queryByTestId } = renderEmailPreferencesForm();
-
-    expect(queryByTestId('stepper')).toBeDefined();
+    expect(queryByTestId('stepper')).not.toBeNull();
   });
 
   it('should render a back button', () => {
     const { queryByTestId } = renderEmailPreferencesForm();
-
-    expect(queryByTestId('back-button')).toBeDefined();
+    expect(queryByTestId('back-button')).not.toBeNull();
   });
 
   it('should render a button that says Finish', () => {
     const { queryByText } = renderEmailPreferencesForm();
+    expect(queryByText('Finish')).not.toBeNull();
+  });
 
-    expect(queryByText('Finish')).toBeDefined();
+  it('should show the reconsideration prompt when the checkbox is not checked', async () => {
+    const { getByText } = renderEmailPreferencesForm();
+    const finishButton = getByText('Finish');
+
+    fireEvent.click(finishButton);
+
+    await waitFor(() => {
+      expect(getByText(/We Recommend Subscribing to Emails/i)).not.toBeNull();
+    });
+  });
+
+  it('should handle "No thank you" button click in the reconsideration prompt', async () => {
+    const { getByText, findByLabelText } = renderEmailPreferencesForm();
+    const checkbox = await findByLabelText(/receive weekly newsletter/i);
+    const finishButton = getByText('Finish');
+
+    fireEvent.click(finishButton);
+
+    await waitFor(() => {
+      expect(getByText(/We Recommend Subscribing to Emails/i)).not.toBeNull();
+    });
+
+    const noThankYouButton = getByText('No thank you');
+    fireEvent.click(noThankYouButton);
+
+    // Verify that the `finishWithoutEmail` function is called
+    expect(checkbox.checked).toBe(false);
+  });
+
+  it('should handle "Count me in" button click in the reconsideration prompt', async () => {
+    const { getByText } = renderEmailPreferencesForm();
+    const finishButton = getByText('Finish');
+
+    fireEvent.click(finishButton);
+
+    await waitFor(() => {
+      expect(getByText(/We Recommend Subscribing to Emails/i)).not.toBeNull();
+    });
+
+    const countMeInButton = getByText('Count me in');
+    fireEvent.click(countMeInButton);
+
+    // Verify that the `finishWithEmail` function is called
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith('/onboarding/notifications', expect.any(Object));
+    });
   });
 });

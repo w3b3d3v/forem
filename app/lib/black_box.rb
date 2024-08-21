@@ -10,6 +10,7 @@ class BlackBox
       today_bonus = usable_date > 26.hours.ago ? 795 : 0
       two_day_bonus = usable_date > 48.hours.ago ? 830 : 0
       four_day_bonus = usable_date > 96.hours.ago ? 930 : 0
+      featured_bonus = article.featured ? 200 : 0
       if usable_date < 4.days.ago
         reaction_points /= 2 # Older posts should fade
       end
@@ -24,7 +25,7 @@ class BlackBox
 
       (
         article_hotness + reaction_points + recency_bonus + super_recent_bonus +
-        super_super_recent_bonus + today_bonus + two_day_bonus + four_day_bonus
+        super_super_recent_bonus + today_bonus + two_day_bonus + four_day_bonus + featured_bonus
       )
     end
 
@@ -32,12 +33,7 @@ class BlackBox
       descendants_points = (comment.descendants.size / 2)
       rep_points = comment.reactions.sum(:points)
       bonus_points = calculate_bonus_score(comment.body_markdown)
-      spaminess_rating = calculate_spaminess(comment)
-      (rep_points + descendants_points + bonus_points - spaminess_rating).to_i
-    end
-
-    def calculate_spaminess(story)
-      story.user ? 0 : 100
+      (rep_points + descendants_points + bonus_points).to_i
     end
 
     private
@@ -49,11 +45,10 @@ class BlackBox
     end
 
     def last_mile_hotness_calc(article)
-      score_from_epoch = article.featured_number.to_i - OUR_EPOCH_NUMBER # Approximate time of publish - epoch time
+      score_from_epoch = article.published_at.to_i - OUR_EPOCH_NUMBER # Approximate time of publish - epoch time
       (score_from_epoch / 1000) +
         ([article.score, 650].min * 2) +
-        ([article.comment_score, 650].min * 2) -
-        (article.spaminess_rating * 5)
+        ([article.comment_score, 650].min * 2)
     end
   end
 end

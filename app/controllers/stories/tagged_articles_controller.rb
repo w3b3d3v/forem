@@ -15,13 +15,14 @@ module Stories
       end
 
       @page = (params[:page] || 1).to_i
-      @article_index = true
-      @moderators = User.with_role(:tag_moderator, @tag).select(:username, :profile_image, :id)
+
+      @moderators = User.with_role(:tag_moderator, @tag)
+        .order(badge_achievements_count: :desc)
+        .select(:username, :profile_image, :id)
 
       set_number_of_articles(tag: @tag)
 
       set_stories(number_of_articles: @number_of_articles, tag: @tag, page: @page)
-      not_found_if_not_established(tag: @tag, stories: @stories)
 
       set_surrogate_key_header "articles-#{@tag}"
       set_cache_control_headers(600,
@@ -37,7 +38,8 @@ module Stories
                                 elsif Settings::UserExperience.feed_strategy == "basic"
                                   tagged_count(tag: tag)
                                 else
-                                  Rails.cache.fetch("article-cached-tagged-count-#{tag.name}", expires_in: 2.hours) do
+                                  Rails.cache.fetch("#{tag.cache_key}/article-cached-tagged-count",
+                                                    expires_in: 2.hours) do
                                     tagged_count(tag: tag)
                                   end
                                 end
@@ -45,11 +47,16 @@ module Stories
       @number_of_articles = user_signed_in? ? 5 : SIGNED_OUT_RECORD_COUNT
     end
 
+    # @raise [ActiveRecord::NotFound] if we don't have an "established" tag
     def set_stories(number_of_articles:, page:, tag:)
       stories = Articles::Feeds::Tag.call(tag.name, number_of_articles: number_of_articles, page: page)
 
       stories = stories.approved if tag.requires_approval?
 
+      # NOTE: We want to check if there are any stories regardless of timeframe.
+      not_found unless established?(stories: stories, tag: tag)
+
+      # Now, apply the filter.
       stories = stories_by_timeframe(stories: stories)
       @stories = stories.decorate
     end
@@ -58,15 +65,23 @@ module Stories
       tag.articles.published.where(score: Settings::UserExperience.tag_feed_minimum_score..).count
     end
 
-    def not_found_if_not_established(stories:, tag:)
-      return if tag.supported?
+    # Do we have an established tag?  That means it's supported OR we have at least one published story.
+    #
+    # @param stories [ActiveRecord::Relation<Article>]
+    # @param tag [Tag]
+    # @return [TrueClass] if we have published stories for this tag
+    # @return [FalseClass] if we do not
+    def established?(stories:, tag:)
+      return true if tag.supported?
+      return true if stories.published.exists?
 
-      not_found unless stories.any?(&:published?)
+      false
     end
 
     def stories_by_timeframe(stories:)
       if Timeframe::FILTER_TIMEFRAMES.include?(params[:timeframe])
         stories.where("published_at > ?", Timeframe.datetime(params[:timeframe]))
+          .where(score: -20..)
           .order(public_reactions_count: :desc)
       elsif params[:timeframe] == Timeframe::LATEST_TIMEFRAME
         stories.where(score: -20..).order(published_at: :desc)

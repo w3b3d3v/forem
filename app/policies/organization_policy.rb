@@ -1,6 +1,6 @@
 class OrganizationPolicy < ApplicationPolicy
   def create?
-    !user.suspended?
+    !user.spam_or_suspended?
   end
 
   def update?
@@ -8,7 +8,7 @@ class OrganizationPolicy < ApplicationPolicy
   end
 
   def destroy?
-    user.org_admin?(record) && record.destroyable?
+    user.super_admin? || (user.org_admin?(record) && record.destroyable?)
   end
 
   def leave_org?
@@ -28,4 +28,8 @@ class OrganizationPolicy < ApplicationPolicy
   end
 
   alias generate_new_secret? update?
+
+  # The analytics? policy method is also on the UserPolicy.  This exists specifically to allow for
+  # "duck-typing" on the tests.
+  alias analytics? part_of_org?
 end

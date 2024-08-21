@@ -1,30 +1,29 @@
-<% if FeatureFlag.enabled?(:member_index_view) %>
-  <% if params[:controller] == "admin/users" %>
-    <%= form_with url: admin_users_path, method: :get, local: true, class: "flex flex-col m:flex-row gap-3 m:items-center p-3" do |f| %>
-      <div class="crayons-field flex-1 flex-row items-center gap-2">
-        <%= f.text_field :search, value: params[:search], class: "crayons-textfield mt-0", placeholder: "Search member...", aria: { label: "Search member by name, username, email, or Twitter/GitHub usernames" } %>
+<%= javascript_include_tag "admin/users/controls", defer: true %>
+
+<%= form_with url: admin_users_path, method: :get, local: true  do |f| %>
+  <div class="flex m:flex-col xl:flex-row justify-between m:items-end xl:justify-end xl:items-center mb-4">
+    <div>
+      <%= paginate @users, theme: "admin", scope: @users, label: t("views.admin.users.aria_paginate"), context: "small" %>
+    </div>
+    <div class="flex justify-between xl:justify-end m:w-100 xl:w-max">
+      <div class="hidden m:block m:w-50 xl:w-max">
+        <%= render "admin/users/controls/search_field", f: f, context: "large", placeholder: t("views.admin.users.search.placeholder"), aria_label: t("views.admin.users.search.aria_field") %>
       </div>
-      <div class="crayons-field flex-row items-center gap-2">
-        <%= f.select :role, options_for_select(Role::ROLES, params[:role]), { include_blank: true, prompt: "Filter by role..." }, class: "crayons-select mt-0" %>
+      <div class="flex xl:ml-2">
+        <div class="m:hidden">
+          <%= render "admin/users/controls/expand_search_button" %>
+        </div>
+        <button type="button" aria-label="<%= t("views.admin.users.filters.aria_label") %>" class="js-open-filter-modal-btn c-btn c-btn--icon-alone"><%= crayons_icon_tag("filter", aria_hidden: true) %></button>
+        <%= render "admin/users/controls/export" %>
       </div>
-      <%= f.submit "Filter", class: "c-btn c-btn--secondary" %>
-    <% end %>
+    </div>
+  </div>
   <% end %>
-<% else %>
-  <% if params[:controller] == "admin/users" %>
-    <%= form_with url: admin_users_path, method: :get, local: true, class: "flex flex-col m:flex-row gap-3 m:items-center p-3" do |f| %>
-      <div class="crayons-field flex-1 flex-row items-center gap-2">
-        <%= f.label :search, class: "crayons-field__label whitespace-nowrap" %>
-        <%= f.text_field :search, value: params[:search], class: "crayons-textfield mt-0", placeholder: "Name, username, email, or Twitter/GitHub usernames", aria: { label: "Filter by name, username, email, or Twitter/GitHub usernames" } %>
-      </div>
-      <div class="crayons-field flex-row items-center gap-2">
-        <%= f.label :role, "Filter by Role", class: "crayons-field__label whitespace-nowrap" %>
-        <%= f.select :role, options_for_select(Role::ROLES, params[:role]), { include_blank: true }, class: "crayons-select mt-0" %>
-      </div>
-      <%= f.submit "Filter", class: "c-btn c-btn--secondary" %>
-    <% end %>
-  <% end %>
-  <% if params[:controller] == "admin/invitations" %>
-    <%= link_to "New", new_admin_invitation_path, class: "c-cta self-end" %>
-  <% end %>
+<!-- Expandable sections -->
+<%= form_with url: admin_users_path, method: :get, local: true  do |f| %>
+  <div class="m:hidden">
+    <div id="search-users" class="hidden">
+      <%= render "admin/users/controls/search_field", f: f, context: "small", placeholder: t("views.admin.users.search.placeholder"), aria_label: t("views.admin.users.search.aria_field") %>
+    </div>
+  </div>
 <% end %>

@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe "/admin/users", type: :request do
+RSpec.describe "/admin/member_manager/users" do
   let!(:user) do
     omniauth_mock_github_payload
     create(:user, :with_identity, identities: ["github"])
@@ -11,7 +11,7 @@ RSpec.describe "/admin/users", type: :request do
     sign_in(admin)
   end
 
-  describe "GET /admin/users" do
+  describe "GET /admin/member_manager/users" do
     it "renders to appropriate page" do
       get admin_users_path
       expect(response.body).to include(user.username)
@@ -32,7 +32,7 @@ RSpec.describe "/admin/users", type: :request do
     end
   end
 
-  describe "GET /admin/users/:id" do
+  describe "GET /admin/member_manager/users/:id" do
     it "renders to appropriate page" do
       get admin_user_path(user)
 
@@ -60,17 +60,17 @@ RSpec.describe "/admin/users", type: :request do
     end
 
     it "displays a user's current roles in the 'Emails' tab" do
-      get "/admin/users/#{user.id}?tab=emails"
+      get "#{admin_user_path(user.id)}?tab=emails"
       expect(response.body).to include("Previous emails")
     end
 
     it "displays a user's current flags in the 'Flags' tab" do
-      get "/admin/users/#{user.id}?tab=flags"
+      get "#{admin_user_path(user.id)}?tab=flags"
       expect(response.body).to include("Flags received")
     end
 
     it "displays a message when there are no related vomit reactions for a user" do
-      get "/admin/users/#{user.id}?tab=flags"
+      get "#{admin_user_path(user.id)}?tab=flags"
       expect(response.body).to include("No flags received against")
     end
 
@@ -81,12 +81,12 @@ RSpec.describe "/admin/users", type: :request do
     end
 
     it "displays a user's current reports in the 'Reports' tab" do
-      get "/admin/users/#{user.id}?tab=reports"
+      get "#{admin_user_path(user.id)}?tab=reports"
       expect(response.body).to include("Reports submitted by")
     end
 
     it "displays a message when there are no current reports for a user" do
-      get "/admin/users/#{user.id}?tab=reports"
+      get "#{admin_user_path(user.id)}?tab=reports"
       expect(response.body).to include("No comment or post has been reported yet.")
     end
 
@@ -95,9 +95,33 @@ RSpec.describe "/admin/users", type: :request do
       get admin_user_path(user.id)
       expect(response.body).to include(report.feedback_type)
     end
+
+    it "displays unpublish all data from logs when it exists on unpublish_alls tab" do
+      article = create(:article, user: user, published: false)
+      create(:audit_log, user: admin, slug: "unpublish_all_articles",
+                         data: { target_article_ids: [article.id], target_user_id: user.id })
+      get "#{admin_user_path(user.id)}?tab=unpublish_logs"
+      expect(response.body).to include("Unpublished by")
+      expect(response.body).to include(CGI.escapeHTML(article.title))
+    end
+
+    it "displays a label if an unpublished post was republished" do
+      article = create(:article, user: user, published: true)
+      create(:audit_log, user: admin, slug: "unpublish_all_articles",
+                         data: { target_article_ids: [article.id], target_user_id: user.id })
+      get "#{admin_user_path(user.id)}?tab=unpublish_logs"
+      expect(response.body).to include(CGI.escapeHTML(article.title))
+      expect(response.body).to include("(was republished)")
+    end
+
+    it "displays nothing on unpublish_alls tab if it the log doesn't exist" do
+      get "#{admin_user_path(user.id)}?tab=unpublish_logs"
+      expect(response).to be_successful
+      expect(response.body).not_to include("Unpublished by")
+    end
   end
 
-  describe "POST /admin/users/:id/banish" do
+  describe "POST /admin/member_manager/users/:id/banish" do
     it "bans user for spam" do
       allow(Moderator::BanishUserWorker).to receive(:perform_async)
       post banish_admin_user_path(user.id)
@@ -106,7 +130,7 @@ RSpec.describe "/admin/users", type: :request do
     end
   end
 
-  describe "POST /admin/users/:id/send_email" do
+  describe "POST /admin/member_manager/users/:id/send_email" do
     let(:params) do
       {
         email_body: "Body",
@@ -188,7 +212,72 @@ RSpec.describe "/admin/users", type: :request do
     end
   end
 
-  describe "POST /admin/users/:id/verify_email_ownership" do
+  describe "POST /admin/member_manager/users/:id/send_email_confirmation" do
+    let(:user) { create(:user) }
+    let(:message_delivery) { instance_double(ActionMailer::MessageDelivery) }
+
+    before do
+      allow(ForemInstance).to receive(:smtp_enabled?).and_return(true)
+    end
+
+    context "when interacting via a browser" do
+      it "returns not found for non-existing users" do
+        expect do
+          post send_email_confirmation_admin_user_path(9999)
+        end.to raise_error(ActiveRecord::RecordNotFound)
+      end
+
+      it "fails sending the confirmation email if an error occurs" do
+        allow(User).to receive(:find).with(user.id.to_s).and_return(user)
+        allow(user).to receive(:send_confirmation_instructions).and_return(false)
+
+        post send_email_confirmation_admin_user_path(user)
+
+        expect(response).to redirect_to(admin_user_path(user))
+        expect(flash[:danger]).to include("failed")
+      end
+
+      it "sends the confirmation email successfully" do
+        allow(User).to receive(:find).with(user.id.to_s).and_return(user)
+        allow(user).to receive(:send_confirmation_instructions).and_return(true)
+
+        post send_email_confirmation_admin_user_path(user)
+
+        expect(response).to redirect_to(admin_user_path(user))
+        expect(flash[:success]).to include("sent")
+      end
+    end
+
+    context "when interacting via AJAX" do
+      it "returns not found for non-existing users" do
+        expect do
+          post send_email_confirmation_admin_user_path(9999), xhr: true
+        end.to raise_error(ActiveRecord::RecordNotFound)
+      end
+
+      it "fails sending the confirmation email if an error occurs" do
+        allow(User).to receive(:find).with(user.id.to_s).and_return(user)
+        allow(user).to receive(:send_confirmation_instructions).and_return(false)
+
+        post send_email_confirmation_admin_user_path(user), xhr: true
+
+        expect(response).to have_http_status(:service_unavailable)
+        expect(response.parsed_body["error"]).to include("failed")
+      end
+
+      it "sends the confirmation email successfully" do
+        allow(User).to receive(:find).with(user.id.to_s).and_return(user)
+        allow(user).to receive(:send_confirmation_instructions).and_return(true)
+
+        post send_email_confirmation_admin_user_path(user), xhr: true
+
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body["result"]).to include("sent")
+      end
+    end
+  end
+
+  describe "POST /admin/member_manager/users/:id/verify_email_ownership" do
     let(:mailer) { double }
     let(:message_delivery) { double }
 
@@ -297,17 +386,70 @@ RSpec.describe "/admin/users", type: :request do
     end
   end
 
-  describe "POST /admin/users/:id/unpublish_all_articles" do
-    let(:user) { create(:user) }
+  describe "POST /admin/member_manager/users/:id/unpublish_all_articles" do
+    let(:target_user) { create(:user) }
+    let!(:target_articles) { create_list(:article, 3, user: target_user, published: true) }
+    let!(:target_comments) { create_list(:comment, 3, user: target_user) }
+
+    it "creates a corresponding note if note content passed" do
+      text = "The articles were not interesting"
+      expect do
+        post unpublish_all_articles_admin_user_path(target_user.id, note: { content: text })
+      end.to change(Note, :count).by(1)
+      note = target_user.notes.last
+      expect(note.content).to eq(text)
+      expect(note.reason).to eq("unpublish_all_articles")
+      expect(note.author_id).to eq(admin.id)
+    end
 
     it "unpublishes all articles" do
       allow(Moderator::UnpublishAllArticlesWorker).to receive(:perform_async)
-      post unpublish_all_articles_admin_user_path(user.id)
-      expect(Moderator::UnpublishAllArticlesWorker).to have_received(:perform_async).with(user.id)
+      post unpublish_all_articles_admin_user_path(target_user.id)
+      expect(Moderator::UnpublishAllArticlesWorker).to have_received(:perform_async).with(target_user.id, admin.id,
+                                                                                          "moderator")
+    end
+
+    it "unpublishes users comments and posts" do
+      # User's articles are published and comments exist
+      expect(target_articles.map(&:published?)).to contain_exactly(true, true, true)
+      expect(target_comments.map(&:deleted)).to contain_exactly(false, false, false)
+
+      sidekiq_perform_enqueued_jobs(only: Moderator::UnpublishAllArticlesWorker) do
+        post unpublish_all_articles_admin_user_path(target_user.id)
+      end
+
+      # Ensure article's aren't published and comments deleted
+      # (with boolean attribute so they can be reverted if needed)
+      expect(target_articles.map { |a| a.reload.published? }).to contain_exactly(false, false, false)
+      expect(target_comments.map { |c| c.reload.deleted? }).to contain_exactly(true, true, true)
+    end
+
+    it "creates a log record" do
+      Audit::Subscribe.listen :moderator
+
+      create(:article, user: target_user, published: false)
+      create(:comment, user: target_user, deleted: true)
+
+      expect do
+        sidekiq_perform_enqueued_jobs(only: Moderator::UnpublishAllArticlesWorker) do
+          post unpublish_all_articles_admin_user_path(target_user.id)
+        end
+      end.to change(AuditLog, :count).by(1)
+
+      log = AuditLog.last
+      expect(log.category).to eq(AuditLog::MODERATOR_AUDIT_LOG_CATEGORY)
+      expect(log.data["action"]).to eq("unpublish_all_articles")
+      expect(log.user_id).to eq(admin.id)
+
+      # These ids match the affected articles/comments and not the ones created above
+      expect(log.data["target_article_ids"]).to match_array(target_articles.map(&:id))
+      expect(log.data["target_comment_ids"]).to match_array(target_comments.map(&:id))
+
+      Audit::Subscribe.forget :moderator
     end
   end
 
-  describe "DELETE /admin/users/:id/remove_identity" do
+  describe "DELETE /admin/member_manager/users/:id/remove_identity" do
     let(:provider) { Authentication::Providers.available.first }
     let(:user) do
       omniauth_mock_providers_payload
@@ -367,7 +509,7 @@ RSpec.describe "/admin/users", type: :request do
     end
   end
 
-  describe "POST /admin/users/:id/export_data" do
+  describe "POST /admin/member_manager/users/:id/export_data" do
     it "redirects properly to the user edit page" do
       sign_in admin
       post export_data_admin_user_path(user), params: { send_to_admin: "true" }

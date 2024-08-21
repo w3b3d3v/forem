@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe "Stories::Feeds", type: :request do
+RSpec.describe "Stories::Feeds" do
   let(:title) { "My post" }
   let(:user) { create(:user, name: "Josh") }
   let(:organization) { create(:organization, name: "JoshCo") }
@@ -30,36 +30,38 @@ RSpec.describe "Stories::Feeds", type: :request do
       )
     end
 
-    it "returns feed when feed_strategy is basic" do
-      allow(Settings::UserExperience).to receive(:feed_strategy).and_return("basic")
+    context "when there are no params passed (base feed) and user is NOT signed in" do
+      it "returns feed when feed_strategy is basic" do
+        allow(Settings::UserExperience).to receive(:feed_strategy).and_return("basic")
 
-      get stories_feed_path
+        get stories_feed_path
 
-      expect(response_article).to include(
-        "id" => article.id,
-        "title" => title,
-        "user_id" => user.id,
-        "user" => hash_including("name" => user.name),
-        "organization_id" => organization.id,
-        "organization" => hash_including("name" => organization.name),
-        "tag_list" => article.decorate.cached_tag_list_array,
-      )
-    end
+        expect(response_article).to include(
+          "id" => article.id,
+          "title" => title,
+          "user_id" => user.id,
+          "user" => hash_including("name" => user.name),
+          "organization_id" => organization.id,
+          "organization" => hash_including("name" => organization.name),
+          "tag_list" => article.decorate.cached_tag_list_array,
+        )
+      end
 
-    it "returns feed when feed_strategy is optimized" do
-      allow(Settings::UserExperience).to receive(:feed_strategy).and_return("optimized")
+      it "returns feed when feed_strategy is large_forem_experimental" do
+        allow(Settings::UserExperience).to receive(:feed_strategy).and_return("large_forem_experimental")
 
-      get stories_feed_path
+        get stories_feed_path
 
-      expect(response_article).to include(
-        "id" => article.id,
-        "title" => title,
-        "user_id" => user.id,
-        "user" => hash_including("name" => user.name),
-        "organization_id" => organization.id,
-        "organization" => hash_including("name" => organization.name),
-        "tag_list" => article.decorate.cached_tag_list_array,
-      )
+        expect(response_article).to include(
+          "id" => article.id,
+          "title" => title,
+          "user_id" => user.id,
+          "user" => hash_including("name" => user.name),
+          "organization_id" => organization.id,
+          "organization" => hash_including("name" => organization.name),
+          "tag_list" => article.decorate.cached_tag_list_array,
+        )
+      end
     end
 
     context "when rendering an article that is pinned" do
@@ -169,8 +171,8 @@ RSpec.describe "Stories::Feeds", type: :request do
         )
       end
 
-      it "returns feed when feed_strategy is optimized" do
-        allow(Settings::UserExperience).to receive(:feed_strategy).and_return("optimized")
+      it "returns feed when feed_strategy is large_forem_experimental" do
+        allow(Settings::UserExperience).to receive(:feed_strategy).and_return("large_forem_experimental")
 
         get stories_feed_path
 
@@ -195,6 +197,21 @@ RSpec.describe "Stories::Feeds", type: :request do
 
         expect(response_article["top_comments"]).not_to be_nil
         expect(response_article["top_comments"].first["username"]).not_to be_nil
+      end
+    end
+
+    context "when there are low-scoring articles" do
+      let!(:article) { create(:article, featured: false) }
+
+      it "excludes low-score article but not mid-score" do
+        article_with_mid_score = create(:article, score: Settings::UserExperience.home_feed_minimum_score)
+        article_with_low_score = create(:article, score: Articles::Feeds::Latest::MINIMUM_SCORE)
+
+        get timeframe_stories_feed_path(:latest)
+
+        response_array = response.parsed_body.pluck("title")
+        expect(response_array).to contain_exactly(article.title, article_with_mid_score.title)
+        expect(response_array).not_to include(article_with_low_score.title)
       end
     end
   end

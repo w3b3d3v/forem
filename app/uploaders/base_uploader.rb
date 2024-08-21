@@ -30,10 +30,13 @@ class BaseUploader < CarrierWave::Uploader::Base
     return if file.content_type.include?("svg")
 
     manipulate! do |image|
+      image.auto_orient
       image.strip unless image.frames.count > FRAME_STRIP_MAX
       image = yield(image) if block_given?
       image
     end
+  rescue StandardError => e
+    Rails.logger.error("Error stripping EXIF data: #{e}")
   end
 
   def validate_frame_count

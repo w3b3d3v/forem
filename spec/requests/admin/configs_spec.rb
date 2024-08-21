@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe "/admin/customization/config", type: :request do
+RSpec.describe "/admin/customization/config" do
   let(:user) { create(:user) }
   let(:admin) { create(:user, :admin) }
   let(:super_admin) { create(:user, :super_admin) }
@@ -178,25 +178,6 @@ RSpec.describe "/admin/customization/config", type: :request do
           expect(Settings::Community.community_description).to eq(description)
         end
 
-        it "updates the community_emoji if valid" do
-          allow(Settings::Community).to receive(:community_emoji).and_call_original
-          emoji = "🥐"
-          post admin_settings_communities_path, params: {
-            settings_community: { community_emoji: emoji }
-          }
-          expect(Settings::Community.community_emoji).to eq(emoji)
-        end
-
-        it "does not update the community_emoji if invalid" do
-          Settings::Community.community_emoji = "🥐"
-          not_an_emoji = "i love croissants"
-          expect do
-            post admin_settings_communities_path, params: {
-              settings_community: { community_emoji: not_an_emoji }
-            }
-          end.not_to change(Settings::Community, :community_emoji)
-        end
-
         it "updates the community_name" do
           name_magoo = "Hey hey #{rand(100)}"
           post admin_settings_communities_path, params: {
@@ -256,12 +237,21 @@ RSpec.describe "/admin/customization/config", type: :request do
         end
       end
 
-      describe "Google Analytics Reporting API v4" do
+      describe "Google Universal Analytics Reporting" do
         it "updates ga_tracking_id" do
           post admin_settings_general_settings_path, params: {
             settings_general: { ga_tracking_id: "abc" }
           }
           expect(Settings::General.ga_tracking_id).to eq("abc")
+        end
+      end
+
+      describe "Google Analytics 4 Reporting" do
+        it "updates ga_analytics_4_id" do
+          post admin_settings_general_settings_path, params: {
+            settings_general: { ga_analytics_4_id: "abc" }
+          }
+          expect(Settings::General.ga_analytics_4_id).to eq("abc")
         end
       end
 
@@ -365,13 +355,6 @@ RSpec.describe "/admin/customization/config", type: :request do
       end
 
       describe "Monetization" do
-        it "updates payment pointer" do
-          post admin_settings_general_settings_path, params: {
-            settings_general: { payment_pointer: "$pay.yo" }
-          }
-          expect(Settings::General.payment_pointer).to eq("$pay.yo")
-        end
-
         it "updates stripe configs" do
           post admin_settings_general_settings_path, params: {
             settings_general: {
@@ -399,13 +382,6 @@ RSpec.describe "/admin/customization/config", type: :request do
           expect(Settings::General.mailchimp_newsletter_id).to eq("abc")
         end
 
-        it "updates mailchimp_sustaining_members_id" do
-          post admin_settings_general_settings_path, params: {
-            settings_general: { mailchimp_sustaining_members_id: "abc" }
-          }
-          expect(Settings::General.mailchimp_sustaining_members_id).to eq("abc")
-        end
-
         it "updates mailchimp_tag_moderators_id" do
           post admin_settings_general_settings_path, params: {
             settings_general: { mailchimp_tag_moderators_id: "abc" }
@@ -422,15 +398,6 @@ RSpec.describe "/admin/customization/config", type: :request do
       end
 
       describe "Onboarding" do
-        it "updates onboarding_background_image" do
-          expected_image_url = "https://dummyimage.com/300x300.png"
-          post admin_settings_general_settings_path, params: {
-            settings_general:
-            { onboarding_background_image: expected_image_url }
-          }
-          expect(Settings::General.onboarding_background_image).to eq(expected_image_url)
-        end
-
         it "removes space suggested_tags" do
           post admin_settings_general_settings_path, params: {
             settings_general: { suggested_tags: "hey, haha,hoho, bobo fofo" }
@@ -443,40 +410,6 @@ RSpec.describe "/admin/customization/config", type: :request do
             settings_general: { suggested_tags: "hey, haha,hoHo, Bobo Fofo" }
           }
           expect(Settings::General.suggested_tags).to eq(%w[hey haha hoho bobofofo])
-        end
-
-        it "removes space suggested_users" do
-          post admin_settings_general_settings_path, params: {
-            settings_general: {
-              suggested_users: "piglet, tigger,eeyore, Christopher Robin, kanga,roo"
-            }
-          }
-          expect(Settings::General.suggested_users).to eq(%w[piglet tigger eeyore christopherrobin kanga roo])
-        end
-
-        it "downcases suggested_users" do
-          post admin_settings_general_settings_path, params: {
-            settings_general: {
-              suggested_users: "piglet, tigger,EEYORE, Christopher Robin, KANGA,RoO"
-            }
-          }
-          expect(Settings::General.suggested_users).to eq(%w[piglet tigger eeyore christopherrobin kanga roo])
-        end
-
-        it "updates prefer_manual_suggested_users to true" do
-          prefer_manual = true
-          post admin_settings_general_settings_path, params: {
-            settings_general: { prefer_manual_suggested_users: prefer_manual }
-          }
-          expect(Settings::General.prefer_manual_suggested_users).to eq(prefer_manual)
-        end
-
-        it "updates prefer_manual_suggested_users to false" do
-          prefer_manual = false
-          post admin_settings_general_settings_path, params: {
-            settings_general: { prefer_manual_suggested_users: prefer_manual }
-          }
-          expect(Settings::General.prefer_manual_suggested_users).to eq(prefer_manual)
         end
       end
 
@@ -683,16 +616,6 @@ RSpec.describe "/admin/customization/config", type: :request do
         end
       end
 
-      describe "Sponsors" do
-        it "updates the sponsor_headline" do
-          headline = "basic"
-          post admin_settings_general_settings_path, params: {
-            settings_general: { sponsor_headline: headline }
-          }
-          expect(Settings::General.sponsor_headline).to eq(headline)
-        end
-      end
-
       describe "Tags" do
         it "removes space sidebar_tags" do
           post admin_settings_general_settings_path, params: {
@@ -797,6 +720,17 @@ RSpec.describe "/admin/customization/config", type: :request do
               settings_user_experience: { display_in_directory: false }
             }
           end.to change(Settings::UserExperience, :display_in_directory).from(default_value).to(false)
+        end
+
+        it "updates the award_tag_minimum_score" do
+          default_value = Settings::UserExperience.get_default(:award_tag_minimum_score)
+          new_award_tag_minimum_score = 200
+          expect do
+            post admin_settings_user_experiences_path, params: {
+              settings_user_experience: { award_tag_minimum_score: new_award_tag_minimum_score }
+            }
+          end.to change(Settings::UserExperience,
+                        :award_tag_minimum_score).from(default_value).to(new_award_tag_minimum_score)
         end
       end
 

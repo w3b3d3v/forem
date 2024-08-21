@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe "/admin/apps/listings", type: :request do
+RSpec.describe "/admin/apps/listings" do
   let(:admin) { create(:user, :super_admin) }
   let!(:listing) { create(:listing, user_id: admin.id) }
 
@@ -25,6 +25,30 @@ RSpec.describe "/admin/apps/listings", type: :request do
       }
       sidekiq_perform_enqueued_jobs
       expect(listing.reload.organization_id).to eq org.id
+    end
+
+    context "when attempting to un-publish" do
+      let!(:listing) { create(:listing, published: true) }
+
+      it "unpublishes the listing" do
+        expect do
+          put admin_listing_path(id: listing.id), params: {
+            listing: { published: "0" }
+          }
+        end.to change { listing.reload.published? }.from(true).to(false)
+      end
+    end
+
+    context "when attempting to publish" do
+      let!(:listing) { create(:listing, published: false) }
+
+      it "publishes the listing" do
+        expect do
+          put admin_listing_path(id: listing.id), params: {
+            listing: { published: "1" }
+          }
+        end.to change { listing.reload.published? }.from(false).to(true)
+      end
     end
 
     describe "GET /admin/app/listings" do

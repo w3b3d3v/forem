@@ -1,19 +1,21 @@
-import { h, render } from 'preact';
+import { h, Fragment, render } from 'preact';
 import PropTypes from 'prop-types';
 import { Article, LoadingArticle } from '../articles';
 import { Feed } from '../articles/Feed';
 import { TodaysPodcasts, PodcastEpisode } from '../podcasts';
 import { articlePropTypes } from '../common-prop-types';
+import { createRootFragment } from '../shared/preact/preact-root-fragment';
+import { getUserDataAndCsrfToken } from '@utilities/getUserDataAndCsrfToken';
 
 /**
  * Sends analytics about the featured article.
  *
  * @param {number} articleId
  */
-function sendFeaturedArticleAnalytics(articleId) {
-  (function logFeaturedArticleImpression() {
+function sendFeaturedArticleGoogleAnalytics(articleId) {
+  (function logFeaturedArticleImpressionGA() {
     if (!window.ga || !ga.create) {
-      setTimeout(logFeaturedArticleImpression, 20);
+      setTimeout(logFeaturedArticleImpressionGA, 20);
       return;
     }
 
@@ -28,8 +30,78 @@ function sendFeaturedArticleAnalytics(articleId) {
   })();
 }
 
+function sendFeaturedArticleAnalyticsGA4(articleId) {
+  (function logFeaturedArticleImpressionGA4() {
+    if (!window.gtag) {
+      setTimeout(logFeaturedArticleImpressionGA4, 20);
+      return;
+    }
+
+    gtag('event', 'featured-feed-impression', {
+      event_category: 'view',
+      event_label: `articles-${articleId}`,
+    });
+  })();
+}
+
+function feedConstruct(
+  pinnedItem,
+  imageItem,
+  feedItems,
+  bookmarkedFeedItems,
+  bookmarkClick,
+  currentUserId,
+) {
+  const commonProps = {
+    bookmarkClick,
+  };
+
+  const feedStyle = JSON.parse(document.body.dataset.user).feed_style;
+
+  if (imageItem) {
+    sendFeaturedArticleGoogleAnalytics(imageItem.id);
+    sendFeaturedArticleAnalyticsGA4(imageItem.id);
+  }
+
+  return feedItems.map((item) => {
+    // billboard is an html string
+    if (typeof item === 'string') {
+      return (
+        <div
+          key={item.id}
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{
+            __html: item,
+          }}
+        />
+      );
+    }
+
+    if (Array.isArray(item) && item[0].podcast) {
+      return <PodcastEpisodes key={item.id} episodes={item} />;
+    }
+
+    if (typeof item === 'object') {
+      return (
+        <Article
+          {...commonProps}
+          key={item.id}
+          article={item}
+          pinned={item.id === pinnedItem?.id}
+          isFeatured={item.id === imageItem?.id}
+          feedStyle={feedStyle}
+          isBookmarked={bookmarkedFeedItems.has(item.id)}
+          saveable={item.user_id != currentUserId}
+          // For "saveable" props, "!=" is used instead of "!==" to compare user_id
+          // and currentUserId because currentUserId is a String while user_id is an Integer
+        />
+      );
+    }
+  });
+}
+
 const FeedLoading = () => (
-  <div>
+  <div data-testid="feed-loading">
     <LoadingArticle version="featured" />
     <LoadingArticle />
     <LoadingArticle />
@@ -59,76 +131,44 @@ PodcastEpisodes.propTypes = {
 /**
  * Renders the main feed.
  */
-export const renderFeed = (timeFrame) => {
+export const renderFeed = async (timeFrame, afterRender) => {
   const feedContainer = document.getElementById('homepage-feed');
+
+  const { currentUser } = await getUserDataAndCsrfToken();
+  const currentUserId = currentUser && currentUser.id;
+
+  const callback = ({
+    pinnedItem,
+    imageItem,
+    feedItems,
+    bookmarkedFeedItems,
+    bookmarkClick,
+  }) => {
+    if (feedItems.length === 0) {
+      // Fancy loading ✨
+      return <FeedLoading />;
+    }
+
+    return (
+      <Fragment>
+        {feedConstruct(
+          pinnedItem,
+          imageItem,
+          feedItems,
+          bookmarkedFeedItems,
+          bookmarkClick,
+          currentUserId,
+        )}
+      </Fragment>
+    );
+  };
 
   render(
     <Feed
       timeFrame={timeFrame}
-      renderFeed={({
-        pinnedArticle,
-        feedItems,
-        podcastEpisodes,
-        bookmarkedFeedItems,
-        bookmarkClick,
-      }) => {
-        if (feedItems.length === 0) {
-          // Fancy loading ✨
-          return <FeedLoading />;
-        }
-
-        const commonProps = {
-          bookmarkClick,
-        };
-
-        const feedStyle = JSON.parse(document.body.dataset.user).feed_style;
-
-        const [featuredStory, ...subStories] = feedItems;
-        if (featuredStory) {
-          sendFeaturedArticleAnalytics(featuredStory.id);
-        }
-
-        // 1. Show the pinned article first
-        // 2. Show the featured story next
-        // 3. Podcast episodes out today
-        // 4. Rest of the stories for the feed
-        return (
-          <div>
-            {timeFrame === '' && pinnedArticle && (
-              <Article
-                {...commonProps}
-                article={pinnedArticle}
-                pinned={true}
-                feedStyle={feedStyle}
-                isBookmarked={bookmarkedFeedItems.has(pinnedArticle.id)}
-              />
-            )}
-            {featuredStory && (
-              <Article
-                {...commonProps}
-                article={featuredStory}
-                isFeatured
-                feedStyle={feedStyle}
-                isBookmarked={bookmarkedFeedItems.has(featuredStory.id)}
-              />
-            )}
-            {podcastEpisodes.length > 0 && (
-              <PodcastEpisodes episodes={podcastEpisodes} />
-            )}
-            {(subStories || []).map((story) => (
-              <Article
-                {...commonProps}
-                key={story.id}
-                article={story}
-                feedStyle={feedStyle}
-                isBookmarked={bookmarkedFeedItems.has(story.id)}
-              />
-            ))}
-          </div>
-        );
-      }}
+      renderFeed={callback}
+      afterRender={afterRender}
     />,
-    feedContainer,
-    feedContainer.firstElementChild,
+    createRootFragment(feedContainer, feedContainer.firstElementChild),
   );
 };

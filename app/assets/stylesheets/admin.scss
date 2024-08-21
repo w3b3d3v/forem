@@ -11,6 +11,24 @@ label {
   margin-bottom: 0 !important;
 }
 
+hr {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  border: 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.hr-no-margins {
+  margin-top: 0px;
+  margin-bottom: 0px;
+  border-top: 1px solid rgba(var(--grey-100), 1);
+}
+
+a:hover {
+  color: var(--link-branded-color-hover);
+  text-decoration: underline var(--link-branded-color-hover) solid 1px;
+}
+
 .pagination {
   justify-content: right;
 
@@ -22,6 +40,17 @@ label {
     padding: 8px;
   }
 }
+
+/****
+The admin area's shared <main> has padding of var(--su-2).
+In the new member index view we want inner content to be able to take up full screen width.
+Since we will want to be able to do the same in later admin area redesigns, we have created a helper class,
+which may be more easily removed once we no longer wish admin layouts to have a padded <main> by default. 
+****/
+.overflow-admin-main-layout-padding {
+  margin: calc(-1 * var(--su-2));
+}
+
 // New pagination styles as added in Admin Member Index view. As we roll out these styles to other admin views, the above CSS will eventually be removed.
 .admin-pagination {
   color: var(--link-color-secondary);
@@ -32,6 +61,23 @@ label {
 
   &--inactive {
     color: var(--base-30);
+  }
+}
+
+.member-data-heading {
+  box-shadow: 0 2px 4px var(--header-shadow);
+}
+
+// Member index view search and filter indicators
+.indicator-btn {
+  .search-indicator {
+    display: inline-block;
+  }
+
+  &[aria-expanded='true'] {
+    .search-indicator {
+      display: none;
+    }
   }
 }
 
@@ -91,6 +137,10 @@ label {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    padding: 0.75rem 1.25rem;
+    margin-bottom: 0;
+    background-color: rgba(0, 0, 0, 0.03);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
   }
 
   .card-header__actions {
@@ -249,5 +299,21 @@ label {
     -webkit-transition: none;
     transition: none;
     display: none;
+  }
+}
+
+.admin-details {
+  border-bottom: 1px solid var(--base-10);
+
+  summary::marker {
+    display: none;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  &[open] .summary-icon {
+    transform: rotate(180deg);
   }
 }

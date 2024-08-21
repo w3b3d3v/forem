@@ -1,16 +1,17 @@
 module Slack
   module Messengers
     class ArticlePublished
-      def initialize(article:)
-        @article = article
-      end
-
       def self.call(**args)
         new(**args).call
       end
 
+      def initialize(article:)
+        @article = article
+      end
+
       def call
-        return unless article.published && article.published_at > 30.seconds.ago
+        return if ENV["DISABLE_SLACK_NOTIFICATIONS"] == "true"
+        return unless article.published && article.published_at > 10.minutes.ago
 
         message = I18n.t(
           "services.slack.messengers.article_published.body",

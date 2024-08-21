@@ -7,7 +7,6 @@
 function initializeReadingListIcons() {
   setReadingListButtonsState();
   addReadingListCountToHomePage();
-  addHoverEffectToReadingListButtons();
 }
 
 // set SAVE or SAVED articles buttons
@@ -33,14 +32,17 @@ function highlightButton(button) {
 }
 
 function addReadingListCountToHomePage() {
-  var user = userData();
-  var readingListCount;
-  if (user && document.getElementById('reading-list-count')) {
-    readingListCount =
-      user.reading_list_ids.length > 0 ? user.reading_list_ids.length : '';
-    document.getElementById('reading-list-count').innerHTML = readingListCount;
-    document.getElementById('reading-list-count').dataset.count =
-      user.reading_list_ids.length;
+  const user = userData();
+  const readingListContainers = document.querySelectorAll(
+    '.js-reading-list-count',
+  );
+  if (user && readingListContainers) {
+    readingListContainers.forEach(function (e) {
+      const readingListCount =
+        user.reading_list_ids.length > 0 ? user.reading_list_ids.length : '';
+      e.innerHTML = readingListCount;
+      e.dataset.count = user.reading_list_ids.length;
+    });
   }
 }
 
@@ -51,7 +53,10 @@ function reactToReadingListButtonClick(event) {
   sendHapticMessage('medium');
   userStatus = document.body.getAttribute('data-user-status');
   if (userStatus === 'logged-out') {
-    showLoginModal();
+    showLoginModal({
+      referring_source: 'post_index_toolbar',
+      trigger: 'reading_list',
+    });
     return;
   }
   button = properButtonFromEvent(event);
@@ -76,24 +81,28 @@ function reactToReadingListButtonClick(event) {
 function renderButtonState(button, json) {
   if (json.result === 'create') {
     button.classList.add('selected');
-    addHoverEffectToReadingListButtons(button);
   } else {
     button.classList.remove('selected');
   }
 }
 
 function renderNewSidebarCount(button, json) {
-  var newCount;
-  var count = document.getElementById('reading-list-count').dataset.count;
-  count = parseInt(count, 10);
-  if (json.result === 'create') {
-    newCount = count + 1;
-  } else if (count !== 0) {
-    newCount = count - 1;
+  const readingListContainers = document.querySelectorAll(
+    '.js-reading-list-count',
+  );
+  if (readingListContainers) {
+    readingListContainers.forEach(function (e) {
+      const count = parseInt(e.dataset.count, 10);
+      let newCount;
+      if (json.result === 'create') {
+        newCount = count + 1;
+      } else if (count !== 0) {
+        newCount = count - 1;
+      }
+      e.dataset.count = newCount;
+      e.innerHTML = newCount > 0 ? newCount : '';
+    });
   }
-  document.getElementById('reading-list-count').dataset.count = newCount;
-  document.getElementById('reading-list-count').innerHTML =
-    newCount > 0 ? newCount : '';
 }
 
 function buttonFormData(button) {
@@ -116,28 +125,6 @@ function properButtonFromEvent(event) {
     properElement = event.target.parentElement;
   }
   return properElement;
-}
-
-/*
-  Add the hover effect to reading list buttons.
-
-  This function makes use of mouseover/mouseevent bubbling behaviors to attach
-  only two event handlers to the articles container for performance reasons.
-*/
-function addHoverEffectToReadingListButtons() {
-  var articlesList = document.getElementsByClassName('articles-list');
-  Array.from(articlesList).forEach(function (container) {
-    // we use `bind` so that the event handler will have the correct text in its
-    // `this` local variable
-    container.addEventListener(
-      'mouseover',
-      readingListButtonMouseHandler.bind('Unsave'),
-    );
-    container.addEventListener(
-      'mouseout',
-      readingListButtonMouseHandler.bind('Saved'),
-    );
-  });
 }
 
 /*

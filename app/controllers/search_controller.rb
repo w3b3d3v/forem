@@ -46,9 +46,12 @@ class SearchController < ApplicationController
     :user_id,
     {
       tag_names: [],
+      hidden_tags: [],
       published_at: [:gte]
     },
   ].freeze
+
+  VALID_SORT_DIRECTIONS = %i[asc desc].freeze
 
   def tags
     result = Search::Tag.search_documents(term: params[:name])
@@ -67,11 +70,13 @@ class SearchController < ApplicationController
   end
 
   def usernames
-    result = Search::Username.search_documents(params[:username])
+    context = commentable_context(params[:context_type])&.find(params[:context_id])
+    result = Search::Username.search_documents(params[:username], context: context)
 
     render json: { result: result }
   end
 
+  # rubocop:disable Metrics/PerceivedComplexity, Metrics/CyclomaticComplexity
   def feed_content
     class_name = feed_params[:class_name].to_s.inquiry
 
@@ -102,6 +107,7 @@ class SearchController < ApplicationController
           user_id: feed_params[:user_id],
           organization_id: feed_params[:organization_id],
           tags: feed_params[:tag_names],
+          hidden_tags: feed_params[:hidden_tags],
           sort_by: params[:sort_by],
           sort_direction: params[:sort_direction],
           page: params[:page],
@@ -109,6 +115,14 @@ class SearchController < ApplicationController
         )
       elsif class_name.Comment?
         Search::Comment.search_documents(
+          page: feed_params[:page],
+          per_page: feed_params[:per_page],
+          sort_by: feed_params[:sort_by],
+          sort_direction: feed_params[:sort_direction],
+          term: feed_params[:search_fields],
+        )
+      elsif class_name.Organization?
+        Search::Organization.search_documents(
           page: feed_params[:page],
           per_page: feed_params[:per_page],
           sort_by: feed_params[:sort_by],
@@ -142,6 +156,7 @@ class SearchController < ApplicationController
       end
     render json: { result: result }
   end
+  # rubocop:enable Metrics/PerceivedComplexity, Metrics/CyclomaticComplexity
 
   def reactions
     # [@rhymes] we're recycling the existing params as we want to change the frontend as
@@ -159,6 +174,10 @@ class SearchController < ApplicationController
   end
 
   private
+
+  def commentable_context(context_type)
+    context_type.constantize if Comment::COMMENTABLE_TYPES.include?(context_type)
+  end
 
   def search_postgres_article
     Search::Article.search_documents(
@@ -196,6 +215,14 @@ class SearchController < ApplicationController
   # nil differently. This is a helper method to remove any params that are
   # blank before passing it to Elasticsearch.
   def sanitize_params
-    params.delete_if { |_k, v| v.blank? }
+    params.compact_blank!
+    remove_invalid_sort_directions
+  end
+
+  def remove_invalid_sort_directions
+    return unless params.key?(:sort_direction)
+
+    direction = params[:sort_direction].downcase.to_sym
+    params.delete(:sort_direction) unless direction.in?(VALID_SORT_DIRECTIONS)
   end
 end

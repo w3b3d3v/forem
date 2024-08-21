@@ -6,6 +6,7 @@ require:
   - rubocop-performance
   - rubocop-rails
   - rubocop-rspec
+  - rubocop-capybara
 
 AllCops:
   Exclude:
@@ -37,8 +38,8 @@ Bundler/OrderedGems:
 
 #################### Layout ###########################
 
-Gemspec/DateAssignment:
-  Description: 'Checks that `date =` is not used in gemspec file, it is set automatically when the gem is packaged.'
+Gemspec/DeprecatedAttributeAssignment:
+  Description: 'Checks that deprecated attribute attributes (like date) are not set in a gemspec file.'
   Enabled: true
 
 #################### Layout ###########################
@@ -224,6 +225,7 @@ Lint/MissingSuper:
   Enabled: true
   Exclude:
     - 'app/components/**/*.rb'
+    - 'app/policies/**/*.rb'
 
 Lint/MixedRegexpCaptureTypes:
   Description: 'Do not mix named captures and numbered captures in a Regexp literal.'
@@ -672,10 +674,13 @@ Style/SwapValues:
 
 Style/TopLevelMethodDefinition:
   Description: 'This cop looks for top-level method definitions.'
-  Enabled: true
-  Exclude:
-    - scripts/release
-    - scripts/stage_release
+  Enabled: false
+# We're disabling it for the time being until a new version of rubocop
+# (> 1.31.2) is released with a fix for false positives that are coming up.
+# These files below were the original files excluded from this rule.
+#  Exclude:
+#    - scripts/release
+#    - scripts/stage_release
 
 Style/TrailingCommaInArguments:
   Description: 'Checks for trailing comma in argument lists.'
@@ -832,6 +837,10 @@ Rails/Inquiry:
   StyleGuide: 'https://rails.rubystyle.guide/#inquiry'
   Enabled: true
 
+Rails/LexicallyScopedActionFilter:
+  Exclude:
+    - app/controllers/api/**/*
+
 Rails/MailerName:
   Description: 'Mailer should end with `Mailer` suffix.'
   StyleGuide: 'https://rails.rubystyle.guide/#mailer-name'
@@ -918,9 +927,11 @@ RSpec/DescribeClass:
   Enabled: true
   StyleGuide: https://www.rubydoc.info/gems/rubocop-rspec/RuboCop/Cop/RSpec/DescribeClass
   Exclude:
-    - 'spec/requests/**/*'
-    - 'spec/system/**/*'
-    - 'spec/tasks/**/*'
+    - '**/spec/features/**/*'
+    - '**/spec/requests/**/*'
+    - '**/spec/routing/**/*'
+    - '**/spec/system/**/*'
+    - '**/spec/views/**/*'
 
 RSpec/DescribedClassModuleWrapping:
   Description: Avoid opening modules and defining specs within them.
@@ -929,9 +940,7 @@ RSpec/DescribedClassModuleWrapping:
 
 RSpec/ExampleLength:
   Description: Checks for long examples.
-  Enabled: true
-  Max: 15
-  StyleGuide: https://www.rubydoc.info/gems/rubocop-rspec/RuboCop/Cop/RSpec/ExampleLength
+  Enabled: false
 
 RSpec/IdenticalEqualityAssertion:
   Description: Checks for equality assertions with identical expressions on both sides.
@@ -954,7 +963,17 @@ RSpec/MultipleExpectations:
   Max: 8
   StyleGuide: https://www.rubydoc.info/gems/rubocop-rspec/RuboCop/Cop/RSpec/MultipleExpectations
 
-RSpec/Rails/AvoidSetupHook:
+RSpecRails/AvoidSetupHook:
   Description: Checks that tests use RSpec `before` hook over Rails `setup` method.
   Enabled: true
   StyleGuide: https://www.rubydoc.info/gems/rubocop-rspec/RuboCop/Cop/RSpec/Rails/AvoidSetupHook
+
+RSpec/NoExpectationExample:
+  Enabled: false
+  AllowedPatterns:
+    - ^expect_
+    - ^assert_
+    - sidekiq_assert_
+
+RSpec/IndexedLet:
+  Enabled: false

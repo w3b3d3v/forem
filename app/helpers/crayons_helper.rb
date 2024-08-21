@@ -5,7 +5,7 @@ module CrayonsHelper
   #   be added automatically if missing.
   # @param native [Boolean] when set to +true+ the icon will not inherit its
   #   parent's color.
-  # @param **opts additional keyword arguments (like e.g. +class+) to be passed
+  # @param opts [Hash] additional keyword arguments (like e.g. +class+) to be passed
   #   through to the +inline_svg_tag+ helper.
   # @return [String] the SVG tag.
   #
@@ -29,6 +29,9 @@ module CrayonsHelper
       opts.delete(:class),
     ].compact.join(" ")
 
-    inline_svg_tag(icon_name, aria: true, width: 24, height: 24, class: icon_class, **opts)
+    opts[:width] ||= 24
+    opts[:height] ||= 24
+
+    inline_svg_tag(icon_name, aria: true, class: icon_class, **opts)
   end
 end

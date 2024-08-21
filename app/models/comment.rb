@@ -4,10 +4,16 @@ class Comment < ApplicationRecord
 
   include PgSearch::Model
   include Reactable
+  include AlgoliaSearchable
 
   BODY_MARKDOWN_SIZE_RANGE = (1..25_000)
 
   COMMENTABLE_TYPES = %w[Article PodcastEpisode].freeze
+
+  LOW_QUALITY_THRESHOLD = -75
+  HIDE_THRESHOLD = -400 # hide comments below this threshold
+
+  VALID_SORT_OPTIONS = %w[top latest oldest].freeze
 
   URI_REGEXP = %r{
     \A
@@ -63,8 +69,6 @@ class Comment < ApplicationRecord
 
   after_create_commit :record_field_test_event
   after_create_commit :send_email_notification, if: :should_send_email_notification?
-  after_create_commit :create_first_reaction
-  after_create_commit :send_to_moderator
 
   after_commit :calculate_score, on: %i[create update]
 
@@ -84,16 +88,9 @@ class Comment < ApplicationRecord
                   }
 
   scope :eager_load_serialized_data, -> { includes(:user, :commentable) }
+  scope :good_quality, -> { where("score > ?", LOW_QUALITY_THRESHOLD) }
 
   alias touch_by_reaction save
-
-  def self.tree_for(commentable, limit = 0)
-    commentable.comments
-      .includes(user: %i[setting profile])
-      .arrange(order: "score DESC")
-      .to_a[0..limit - 1]
-      .to_h
-  end
 
   def self.title_deleted
     I18n.t("models.comment.deleted")
@@ -101,6 +98,14 @@ class Comment < ApplicationRecord
 
   def self.title_hidden
     I18n.t("models.comment.hidden")
+  end
+
+  def self.title_image_only
+    I18n.t("models.comment.image_only")
+  end
+
+  def self.build_comment(params, &blk)
+    includes(user: :profile).new(params, &blk)
   end
 
   def search_id
@@ -144,6 +149,8 @@ class Comment < ApplicationRecord
     return self.class.title_hidden if hidden_by_commentable_user
 
     text = ActionController::Base.helpers.strip_tags(processed_html).strip
+    return self.class.title_image_only if only_contains_image?(text)
+
     truncated_text = ActionController::Base.helpers.truncate(text, length: length).gsub("&#39;", "'").gsub("&amp;", "&")
     Nokogiri::HTML.fragment(truncated_text).text # unescapes all HTML entities
   end
@@ -172,6 +179,18 @@ class Comment < ApplicationRecord
     ancestry && Comment.exists?(id: ancestry)
   end
 
+  def by_staff_account?
+    user == User.staff_account
+  end
+
+  def privileged_reaction_counts
+    @privileged_reaction_counts ||= reactions.privileged_category.group(:category).count
+  end
+
+  def calculate_score
+    Comments::CalculateScoreWorker.perform_async(id)
+  end
+
   private
 
   def remove_notifications?
@@ -197,11 +216,14 @@ class Comment < ApplicationRecord
   end
 
   def evaluate_markdown
-    fixed_body_markdown = MarkdownProcessor::Fixer::FixForComment.call(body_markdown)
-    parsed_markdown = MarkdownProcessor::Parser.new(fixed_body_markdown, source: self, user: user)
-    self.processed_html = parsed_markdown.finalize(link_attributes: { rel: "nofollow" })
+    return unless user
+
+    renderer = ContentRenderer.new(body_markdown, source: self, user: user)
+    self.processed_html = renderer.process(link_attributes: { rel: "nofollow" }).processed_html
     wrap_timestamps_if_video_present! if commentable
     shorten_urls!
+  rescue ContentRenderer::ContentParsingError => e
+    errors.add(:base, ErrorMessages::Clean.call(e.message))
   end
 
   def adjust_comment_parent_based_on_depth
@@ -231,10 +253,6 @@ class Comment < ApplicationRecord
     self.processed_html = doc.to_html.html_safe # rubocop:disable Rails/OutputSafety
   end
 
-  def calculate_score
-    Comments::CalculateScoreWorker.perform_async(id)
-  end
-
   def after_create_checks
     create_id_code
     touch_user
@@ -254,10 +272,6 @@ class Comment < ApplicationRecord
     else
       touch
     end
-  end
-
-  def create_first_reaction
-    Comments::CreateFirstReactionWorker.perform_async(id, user_id)
   end
 
   def after_destroy_actions
@@ -287,9 +301,8 @@ class Comment < ApplicationRecord
   end
 
   def synchronous_spam_score_check
-    return unless Settings::RateLimit.trigger_spam_for?(text: [title, body_markdown].join("\n"))
-
-    self.score = -1 # ensure notification is not sent if possibly spammy
+    self.score = -3 if user.registered_at > 48.hours.ago && body_markdown.include?("http")
+    self.score = -5 if Settings::RateLimit.trigger_spam_for?(text: [title, body_markdown].join("\n"))
   end
 
   def create_conditional_autovomits
@@ -302,6 +315,7 @@ class Comment < ApplicationRecord
       parent_user != user &&
       parent_user.notification_setting.email_comment_notifications &&
       parent_user.email &&
+      user&.badge_achievements_count&.positive? &&
       parent_or_root_article.receive_notifications
   end
 
@@ -327,7 +341,7 @@ class Comment < ApplicationRecord
   def published_article
     return unless commentable_type == "Article" && !commentable.published
 
-    errors.add(:commentable_id, I18n.t("models.comment.is_not_valid"))
+    errors.add(:commentable_id, I18n.t("models.comment.published_article"))
   end
 
   def user_mentions_in_markdown
@@ -346,7 +360,7 @@ class Comment < ApplicationRecord
     return if FieldTest.config["experiments"].nil?
 
     Users::RecordFieldTestEventWorker
-      .perform_async(user_id, "user_creates_comment")
+      .perform_async(user_id, AbExperiment::GoalConversionHandler::USER_CREATES_COMMENT_GOAL)
   end
 
   def notify_slack_channel_about_warned_users
@@ -355,5 +369,10 @@ class Comment < ApplicationRecord
 
   def parent_exists?
     parent_id && Comment.exists?(id: parent_id)
+  end
+
+  def only_contains_image?(stripped_text)
+    # If stripped text is blank and processed html has <img> tags, then it's an image-only comment
+    stripped_text.blank? && processed_html.include?("<img")
   end
 end

@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe "Sitemaps", type: :request do
+RSpec.describe "Sitemaps" do
   describe "GET /sitemap-*" do
     it "renders xml file" do
       get "/sitemap-Mar-2011.xml"
@@ -28,7 +28,7 @@ RSpec.describe "Sitemaps", type: :request do
     it "sends a surrogate key (for Fastly's user)" do
       articles = create_list(:article, 4)
       included_articles = articles.first(3)
-      included_articles.each { |a| a.update(published_at: "2020-03-07T00:27:30Z", score: 10) }
+      included_articles.each { |a| a.update_columns(published_at: "2020-03-07T00:27:30Z", score: 10) }
 
       get "/sitemap-Mar-2020.xml"
 
@@ -99,7 +99,7 @@ RSpec.describe "Sitemaps", type: :request do
     context "with tags in param" do
       before do
         create_list(:tag, 8)
-        Tag.all.each do |tag|
+        Tag.find_each do |tag|
           tag.update_column(:hotness_score, rand(100_000))
         end
       end
@@ -133,7 +133,7 @@ RSpec.describe "Sitemaps", type: :request do
     context "with users in param" do
       before do
         create_list(:user, 8)
-        User.all.each do |user|
+        User.find_each do |user|
           user.update_column(:comments_count, rand(100_000))
         end
       end

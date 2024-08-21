@@ -2,7 +2,7 @@
 en:
   models:
     api_secret:
-      api_limit_reached: API secret limit of 20 per user has been reached
+      api_limit_reached: API secret limit of 10 per user has been reached
     application_record:
       uninferrable: Could not infer a decorator for %{class}.
     article:
@@ -21,17 +21,38 @@ en:
       must_not_have_spaces: must not have spaces
       published: Published
       unique_url: has already been taken. Email %{email} for further details.
+      future_or_current_published_at: only future or current published_at allowed
+
+      immutable_published_at: updating published_at for articles that have already been published is not allowed
       mention_too_many:
         one: You cannot mention more than %{count} users in a post!
         other: You cannot mention more than %{count} users in a post!
+    audience_segment:
+      type_ofs:
+        manual: Managed elsewhere
+        trusted: Are trusted
+        posted: Have at least one post
+        no_posts_yet: Have not posted yet
+        dark_theme: Have enabled dark theme
+        light_theme: Have enabled light theme
+        no_experience: Have not set an experience level
+        experience1: Have experience level one
+        experience2: Have experience level two
+        experience3: Have experience level three
+        experience4: Have experience level four
+        experience5: Have experience level five
+    billboard:
+      invalid_location: '%{location} is not an enabled target ISO 3166-2 code'
     broadcast:
       single_active: You can only have one active announcement broadcast
     comment:
       deleted: '[deleted]'
       has_been_deleted: '%{type} has been deleted.'
       hidden: '[hidden by post author]'
+      image_only: '[image]'
       is_not_valid: is not valid.
       locked: the discussion is locked on this Post
+      published_article: is not a published article
       type:
         Article: Article
         item: item
@@ -61,8 +82,6 @@ en:
       reserved_word: '%<value>s is a reserved word. Contact site admins for help registering your organization.'
     page:
       body_must_exist: must exist if body_html or body_json doesn't exist.
-    podcast:
-      slug_is_reserved: slug is reserved
     podcast_episode_appearance:
       provided_role_is_not_valid: provided role is not valid
     poll_skip:
@@ -93,14 +112,6 @@ en:
         the_community_mascot: The community mascot
       user_experience:
         message: 'must be be a 3 or 6 character hex (starting with #)'
-    sponsorship:
-      invalid_type: is not a sponsorable type
-      already_sponsored: The tag is already sponsored
-      only_one_level: You can have only one sponsorship of %{levels}
-      level:
-        gold: gold
-        silver: silver
-        bronze: bronze
     tag:
       alias_for: alias_for must refer to an existing tag
     tag_adjustment:
@@ -115,9 +126,7 @@ en:
       could_not_send: confirmation could not be sent. %{e_message}
       password_not_matched: doesn't match password confirmation
       has_been_banished: has been banished.
-      is_taken: '%{username} is taken.'
       user_could_not_be_saved: User could not be saved. %{e_message}
-      username_is_reserved: username is reserved
     user_block:
       cant_be_the_same: can't be the same as the blocked_id
     user_subscription:

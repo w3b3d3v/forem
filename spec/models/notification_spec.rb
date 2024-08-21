@@ -1,7 +1,7 @@
 require "rails_helper"
 require "sidekiq/testing"
 
-RSpec.describe Notification, type: :model do
+RSpec.describe Notification do
   let(:user)            { create(:user) }
   let(:user2)           { create(:user) }
   let(:user3)           { create(:user) }
@@ -100,6 +100,23 @@ RSpec.describe Notification, type: :model do
         end.to change(user2.notifications, :count).by(1)
       end
 
+      it "sends as perform_in 60 minutes if follower is new" do
+        user.update_column(:registered_at, 1.day.ago)
+        allow(Notifications::NewFollowerWorker).to receive(:perform_in)
+          .with(60.minutes, anything, anything)
+        described_class.send_new_follower_notification(user_follows_user2)
+        expect(Notifications::NewFollowerWorker).to have_received(:perform_in)
+          .with(60.minutes, anything, anything)
+      end
+
+      it "sends as perform_async if follower is not new" do
+        user.update_column(:registered_at, 7.days.ago)
+        allow(Notifications::NewFollowerWorker).to receive(:perform_async)
+          .with(anything, anything)
+        described_class.send_new_follower_notification(user_follows_user2)
+        expect(Notifications::NewFollowerWorker).to have_received(:perform_async)
+      end
+
       it "creates a notification from the follow instance" do
         sidekiq_perform_enqueued_jobs do
           described_class.send_new_follower_notification(user_follows_user2)
@@ -178,13 +195,13 @@ RSpec.describe Notification, type: :model do
         comment = create(:comment, user: user, commentable: article)
         expect do
           described_class.send_new_comment_notifications_without_delay(comment)
-        end.to change(user.notifications, :count).by(0)
+        end.not_to change(user.notifications, :count)
       end
 
       it "does not send a notification to the author of the comment" do
         expect do
           described_class.send_new_comment_notifications_without_delay(comment)
-        end.to change(user2.notifications, :count).by(0)
+        end.not_to change(user2.notifications, :count)
       end
 
       it "sends a notification to the author of the article about the child comment" do
@@ -213,13 +230,13 @@ RSpec.describe Notification, type: :model do
       it "does not send a notification to the author of the article" do
         expect do
           described_class.send_new_comment_notifications_without_delay(comment)
-        end.to change(user.notifications, :count).by(0)
+        end.not_to change(user.notifications, :count)
       end
 
       it "doesn't send a notification to the author of the article about the child comment" do
         expect do
           described_class.send_new_comment_notifications_without_delay(child_comment)
-        end.to change(user.notifications, :count).by(0)
+        end.not_to change(user.notifications, :count)
       end
     end
 
@@ -231,7 +248,7 @@ RSpec.describe Notification, type: :model do
       it "does not send a notification to the author of the comment" do
         expect do
           described_class.send_new_comment_notifications_without_delay(child_comment)
-        end.to change(child_comment.user.notifications, :count).by(0)
+        end.not_to change(child_comment.user.notifications, :count)
       end
 
       it "sends a notification to the author of the article" do
@@ -341,7 +358,7 @@ RSpec.describe Notification, type: :model do
 
         expect do
           described_class.send_reaction_notification_without_delay(reaction, reaction.reactable.user)
-        end.to change(user.notifications, :count).by(0)
+        end.not_to change(user.notifications, :count)
       end
 
       it "does send a notification to the author of an article" do
@@ -387,7 +404,7 @@ RSpec.describe Notification, type: :model do
           sidekiq_perform_enqueued_jobs do
             described_class.send_reaction_notification(reaction, reaction.reactable.user)
           end
-        end.to change(article.notifications, :count).by(0)
+        end.not_to change(article.notifications, :count)
       end
     end
   end

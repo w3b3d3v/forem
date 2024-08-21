@@ -1,15 +1,16 @@
 <div class="align-center">
-  <% if @comments_to_show_count && @article.comments_count > @comments_to_show_count %>
+  <% if @comments_to_show_count && @comments_count > @comments_to_show_count %>
     <div class="mb-4">
       <a class="crayons-btn crayons-btn--secondary w-100" href="<%= @article.path %>/comments">
-        <%= t("views.comments.parent.view_full", count: @article.comments_count) %>
+        <%= t("views.comments.parent.view_full", count: @comments_count) %>
       </a>
     </div>
   <% end %>
 
-  <% if @article.any_comments_hidden %>
+  <% unless all_comments_visible?(@article) %>
     <p class="fs-s color-base-60 mb-4">
-      <%= t("views.comments.hidden.text_html", info: link_to(t("views.comments.hidden.info"), "/faq")) %>
+      <%= t("views.comments.visible_signed_in.text_html", sign_in: link_to(t("views.comments.visible_signed_in.sign_in"), "/enter")) if any_hidden_negative_comments?(@article) %>
+      <%= t("views.comments.hidden.text_html", info: link_to(t("views.comments.hidden.info"), "/faq")) if @article.any_comments_hidden %>
     </p>
   <% end %>
 

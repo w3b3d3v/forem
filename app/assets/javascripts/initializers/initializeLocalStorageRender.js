@@ -5,7 +5,7 @@ function initializeLocalStorageRender() {
       document.body.dataset.user = userData;
       initializeBaseUserData();
       initializeReadingListIcons();
-      initializeSponsorshipVisibility();
+      initializeBillboardVisibility();
     }
   } catch (err) {
     browserStoreCache('remove');

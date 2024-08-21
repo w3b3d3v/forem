@@ -1,11 +1,11 @@
 module EdgeCache
   class Bust
-    def initialize
-      @provider_class = determine_provider_class
-    end
-
     def self.call(*paths)
       new.call(*paths)
+    end
+
+    def initialize
+      @provider_class = determine_provider_class
     end
 
     def call(paths)
@@ -26,16 +26,10 @@ module EdgeCache
     private
 
     def determine_provider_class
-      provider =
-        if fastly_enabled?
-          "fastly"
-        elsif nginx_enabled_and_available?
-          "nginx"
-        end
+      return self.class::Fastly if fastly_enabled?
+      return self.class::Nginx if nginx_enabled_and_available?
 
-      return unless provider
-
-      self.class.const_get(provider.capitalize)
+      nil
     end
 
     def fastly_enabled?

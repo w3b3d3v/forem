@@ -16,13 +16,12 @@ export const Default = () => {
   );
 };
 
-Default.story = {
-  name: 'Text buttons',
-};
+Default.storyName = 'Text buttons';
 
 export const TextIcon = () => {
   const Icon = () => (
     <svg
+      title="Check"
       width="24"
       height="24"
       xmlns="http://www.w3.org/2000/svg"
@@ -40,6 +39,4 @@ export const TextIcon = () => {
   );
 };
 
-TextIcon.story = {
-  name: 'Text button + Icon',
-};
+TextIcon.storyName = 'Text button + Icon';

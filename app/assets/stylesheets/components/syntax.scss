@@ -13,6 +13,7 @@
 
 pre:not(.highlight),
 div.highlight,
+div:not(.highlight) > pre.highlight,
 li pre.highlight,
 blockquote pre.highlight {
   background: var(--syntax-background-color);
@@ -131,6 +132,10 @@ code {
   max-width: 100%;
   font-size: 80%;
   padding: 0.1em 0.25em;
+}
+
+p > code {
+  background: var(--code-inline-bg);
 }
 
 .highlight .hll {

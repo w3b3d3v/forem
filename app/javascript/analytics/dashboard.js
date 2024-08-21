@@ -31,29 +31,34 @@ function writeCards(data, timeRangeLabel) {
   const readers = sumAnalytics(data, 'page_views');
   const reactions = sumAnalytics(data, 'reactions');
   const comments = sumAnalytics(data, 'comments');
-  const follows = sumAnalytics(data, 'follows');
 
   const reactionCard = document.getElementById('reactions-card');
   const commentCard = document.getElementById('comments-card');
-  const followerCard = document.getElementById('followers-card');
   const readerCard = document.getElementById('readers-card');
 
   readerCard.innerHTML = cardHTML(readers, `Readers ${timeRangeLabel}`);
   commentCard.innerHTML = cardHTML(comments, `Comments ${timeRangeLabel}`);
   reactionCard.innerHTML = cardHTML(reactions, `Reactions ${timeRangeLabel}`);
-  followerCard.innerHTML = cardHTML(follows, `Followers ${timeRangeLabel}`);
 }
 
 function drawChart({ id, showPoints = true, title, labels, datasets }) {
-  const chartOptions = showPoints
-    ? {}
-    : {
-        elements: {
-          point: {
-            radius: 0,
-          },
+  const chartOptions = {
+    elements: {
+      point: {
+        // The default is 3: https://www.chartjs.org/docs/latest/configuration/elements.html#point-configuration
+        radius: showPoints ? 3 : 0,
+      },
+    },
+    scales: {
+      y: {
+        type: 'linear',
+        suggestedMin: 0,
+        ticks: {
+          precision: 0,
         },
-      };
+      },
+    },
+  };
   const dataOptions = {
     plugins: {
       legend: {
@@ -64,16 +69,6 @@ function drawChart({ id, showPoints = true, title, labels, datasets }) {
     title: {
       display: true,
       text: title,
-    },
-    scales: {
-      y: {
-        type: 'linear',
-        suggestedMin: 0,
-
-        ticks: {
-          precision: 0,
-        },
-      },
     },
   };
 
@@ -123,7 +118,6 @@ function drawCharts(data, timeRangeLabel) {
   const likes = parsedData.map((date) => date.reactions.like);
   const readingList = parsedData.map((date) => date.reactions.readinglist);
   const unicorns = parsedData.map((date) => date.reactions.unicorn);
-  const followers = parsedData.map((date) => date.follows.total);
   const readers = parsedData.map((date) => date.page_views.total);
 
   // When timeRange is "Infinity" we hide the points to avoid over-crowding the UI
@@ -188,23 +182,6 @@ function drawCharts(data, timeRangeLabel) {
   });
 
   drawChart({
-    id: 'followers-chart',
-    showPoints,
-    title: `New Followers ${timeRangeLabel}`,
-    labels,
-    datasets: [
-      {
-        label: 'Followers',
-        data: followers,
-        fill: false,
-        borderColor: 'rgb(10, 133, 255)',
-        backgroundColor: 'rgb(10, 133, 255)',
-        lineTension: 0.1,
-      },
-    ],
-  });
-
-  drawChart({
     id: 'readers-chart',
     showPoints,
     title: `Reads ${timeRangeLabel}`,
@@ -251,15 +228,40 @@ function renderReferrers(data) {
   container.innerHTML = tableBody.join('');
 }
 
-function callAnalyticsAPI(date, timeRangeLabel, { organizationId, articleId }) {
-  callHistoricalAPI(date, { organizationId, articleId }, (data) => {
-    writeCards(data, timeRangeLabel);
-    drawCharts(data, timeRangeLabel);
-  });
+function removeCardElements() {
+  const el = document.getElementsByClassName('summary-stats')[0];
+  el && el.remove();
+}
 
-  callReferrersAPI(date, { organizationId, articleId }, (data) => {
-    renderReferrers(data);
+function showErrorsOnCharts() {
+  const target = ['reactions-chart', 'comments-chart', 'readers-chart'];
+  target.forEach((id) => {
+    const el = document.getElementById(id);
+    el.outerHTML = `<p class="m-5" id="${id}">Failed to fetch chart data. If this error persists for a minute, you can try to disable adblock etc. on this page or site.</p>`;
   });
+}
+
+function showErrorsOnReferrers() {
+  document.getElementById('referrers-container').outerHTML =
+    '<p class="m-5" id="referrers-container">Failed to fetch referrer data. If this error persists for a minute, you can try to disable adblock etc. on this page or site.</p>';
+}
+
+function callAnalyticsAPI(date, timeRangeLabel, { organizationId, articleId }) {
+  callHistoricalAPI(date, { organizationId, articleId })
+    .then((data) => {
+      writeCards(data, timeRangeLabel);
+      drawCharts(data, timeRangeLabel);
+    })
+    .catch((_err) => {
+      removeCardElements();
+      showErrorsOnCharts();
+    });
+
+  callReferrersAPI(date, { organizationId, articleId })
+    .then((data) => {
+      renderReferrers(data);
+    })
+    .catch((_err) => showErrorsOnReferrers());
 }
 
 function drawWeekCharts({ organizationId, articleId }) {

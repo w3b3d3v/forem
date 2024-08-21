@@ -12,12 +12,7 @@
   <title><%= controller_name.titleize %></title>
 
   <!-- StimulusJS -->
-  <%= javascript_packs_with_chunks_tag "admin", defer: true %>
-
-  <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
-
-  <!-- Bootstrap -->
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+  <%= javascript_include_tag "admin", defer: true %>
 
   <%= stylesheet_link_tag "admin" %>
 
@@ -27,6 +22,7 @@
   data-deployed-at="<%= j(ForemInstance.deployed_at) %>"
   data-latest-commit-id="<%= j(ForemInstance.latest_commit_id) %>"
   data-ga-tracking="<%= j(Settings::General.ga_tracking_id) %>"
+  data-ga4-tracking-id="<%= j(Settings::General.ga_analytics_4_id) %>"
   data-controller="snackbar"
   data-action="snackbar:add@document->snackbar#addItem">
   <div id="body-styles">
@@ -59,16 +55,21 @@
     </div>
   </header>
 
-  <div class="crayons-layout crayons-layout--2-cols">
+  <div class="crayons-layout crayons-layout--admin-2-cols">
     <div class="admin__left-sidebar crayons-layout__left-sidebar" data-controller="sidebar" data-action="load@window->sidebar#disableCurrentNavItem">
       <%= render "admin/shared/nested_sidebar", menu_items: AdminMenu.navigation_items %>
     </div>
     <main id="main-content" class="crayons-layout__content min-w-0 p-2">
-      <%= javascript_packs_with_chunks_tag "admin/flashMessages", defer: true %>
+      <%= javascript_include_tag "admin/flashMessages", defer: true %>
       <% flash.each_with_index do |(type, message), i| %>
-        <div data-testid="flash-<%= type %>" class="alert alert-<%= type == "notice" || type == "success" ? "success" : "danger" %>">
+        <div
+          id="notice-container"
+          data-controller="notice"
+          data-notice-target="noticeZone"
+          data-testid="flash-<%= type %>"
+          class="mb-4 crayons-notice crayons-notice--<%= type == "info" || type == "success" ? "success" : "danger" %>">
           <span id="flash-<%= i %>"><%= message %></span>
-          <button class="close js-flash-close-btn" data-dismiss="alert" aria-label="Dismiss message" aria-describedby="flash-<%= i %>">
+          <button class="crayons-notice--close js-flash-close-btn" data-action="click->notice#closeNotice" aria-label="Dismiss message" aria-describedby="flash-<%= i %>">
             <%= crayons_icon_tag(:x, aria_hidden: true) %>
           </button>
         </div>
@@ -94,8 +95,5 @@
   </div>
 
   <div data-snackbar-target="snackZone"></div>
-
-  <!-- Bootstrap Dependencies -->
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
 </body>
 </html>

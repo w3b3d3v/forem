@@ -5,6 +5,10 @@ import { axe } from 'jest-axe';
 import { GithubRepos } from '../githubRepos';
 
 global.fetch = fetch;
+const csrfToken = 'this-is-a-csrf-token';
+jest.mock('../../utilities/http/csrfToken', () => ({
+  getCSRFToken: jest.fn(() => Promise.resolve(csrfToken)),
+}));
 
 function getRepositories() {
   return [
@@ -201,10 +205,7 @@ function getRepositories() {
 }
 
 describe('<GithubRepos />', () => {
-  const csrfToken = 'this-is-a-csrf-token';
-
   beforeEach(() => {
-    global.getCsrfToken = async () => csrfToken;
     global.Honeybadger = { notify: jest.fn() };
   });
 
@@ -227,14 +228,14 @@ describe('<GithubRepos />', () => {
 
     // No need to test it's contents as this is the <SingleRepo /> component
     // which has it's own tests.
-    expect(repoList).toBeDefined();
+    expect(repoList).toExist();
   });
 
   it('should render with no repositories', () => {
     fetch.mockResponse('[]');
     const { queryByTitle } = render(<GithubRepos />);
 
-    expect(queryByTitle('Loading GitHub repositories')).toBeDefined();
+    expect(queryByTitle('Loading GitHub repositories')).toExist();
   });
 
   it('should render error message when repositories cannot be loaded', async () => {

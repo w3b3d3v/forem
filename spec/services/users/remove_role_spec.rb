@@ -3,36 +3,11 @@ require "rails_helper"
 RSpec.describe Users::RemoveRole, type: :service do
   let(:current_user) { create(:user, :admin) }
 
-  context "when user is a super_admin" do
-    it "does not remove super_admin roles and raises an error", :aggregate_failures do
-      super_admin = create(:user, :super_admin)
-      role = super_admin.roles.first.name.to_sym
-      resource_type = nil
-      args = { user: super_admin, role: role, resource_type: resource_type, admin: current_user }
-      role_removal = described_class.call(**args)
-
-      expect(role_removal.success).to be false
-      expect(role_removal.error_message).to eq "Super Admin roles cannot be removed."
-    end
-  end
-
-  context "when current_user" do
-    it "does not remove roles and raises an error", :aggregate_failures do
-      role = current_user.roles.first
-      resource_type = nil
-      args = { user: current_user, role: role, resource_type: resource_type, admin: current_user }
-      role_removal = described_class.call(**args)
-
-      expect(role_removal.success).to be false
-      expect(role_removal.error_message).to eq "Admins cannot remove roles from themselves."
-    end
-  end
-
   it "removes roles from users", :aggregate_failures do
     user = create(:user, :trusted)
     role = user.roles.first
     resource_type = nil
-    args = { user: user, role: role, resource_type: resource_type, admin: current_user }
+    args = { user: user, role: role, resource_type: resource_type }
     role_removal = described_class.call(**args)
 
     expect(role_removal.success).to be true
@@ -44,7 +19,7 @@ RSpec.describe Users::RemoveRole, type: :service do
     user = create(:user, :single_resource_admin)
     role = user.roles.first
     resource_type = "Comment"
-    args = { user: user, role: role, resource_type: resource_type, admin: current_user }
+    args = { user: user, role: role, resource_type: resource_type }
     role_removal = described_class.call(**args)
 
     expect(role_removal.success).to be true
@@ -52,12 +27,46 @@ RSpec.describe Users::RemoveRole, type: :service do
     expect(user.roles.count).to eq 1
   end
 
+  context "when removing tag mod role" do
+    let(:user) { create(:user) }
+    let(:tag) { create(:tag, name: "ruby") }
+    let(:go_tag) { create(:tag, name: "go") }
+
+    before do
+      user.add_role(:tag_moderator, tag)
+      user.add_role(:tag_moderator, go_tag)
+    end
+
+    it "removes the role (with resource_id)" do
+      expect(user.tag_moderator?(tag: tag)).to be true
+      described_class.call(user: user, role: "tag_moderator", resource_type: "Tag", resource_id: tag.id)
+      user.reload
+      expect(user.tag_moderator?(tag: tag)).to be false
+    end
+
+    it "doesn't remove other tag mod role" do
+      described_class.call(user: user, role: "tag_moderator", resource_type: "Tag", resource_id: go_tag.id)
+      user.reload
+      expect(user.tag_moderator?(tag: tag)).to be true
+    end
+  end
+
   it "returns an error if there is an issue removing the role" do
     user = create(:user)
     allow(user).to receive(:remove_role).and_raise(StandardError)
-    args = { user: user, role: nil, resource_type: nil, admin: current_user }
+    args = { user: user, role: nil, resource_type: nil }
     role_removal = described_class.call(**args)
 
     expect(role_removal.success).to be false
+  end
+
+  # to update profile header cache
+  it "touches users profile" do
+    user = create(:user, :spam)
+    profile = instance_double(Profile)
+    allow(user).to receive(:profile).and_return(profile)
+    allow(profile).to receive(:touch)
+    described_class.call(user: user, role: :spam, resource_type: nil)
+    expect(profile).to have_received(:touch)
   end
 end
