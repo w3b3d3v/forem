@@ -25,6 +25,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: cancelei_development
     env:
       E2E: true
 
@@ -297,7 +298,7 @@ jobs:
           KNAPSACK_PRO_CI_NODE_TOTAL: ${{ matrix.ci_node_total }}
           KNAPSACK_PRO_CI_NODE_INDEX: ${{ matrix.ci_node_index }}
           KNAPSACK_PRO_TEST_SUITE_TOKEN_CYPRESS: ${{ secrets.KNAPSACK_PRO_TEST_SUITE_TOKEN_CYPRESS }}
-          KNAPSACK_PRO_TEST_FILE_PATTERN: "cypress/e2e/seededFlows/**/*.spec.js"
+          KNAPSACK_PRO_TEST_FILE_PATTERN: 'cypress/e2e/seededFlows/**/*.spec.js'
         run: bin/knapsack_pro_cypress
         if: ${{ matrix.ci_node_index != 'non-seed' }}
       - name: cypress non-seed
