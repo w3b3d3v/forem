@@ -187,7 +187,6 @@
           <div class="crayons-article__body text-styles spec__body" data-article-id="<%= @article.id %>" id="article-body">
             <%= @article.processed_html.html_safe %>
           </div>
-
           <% if @article.long_markdown? && @collection %>
             <%= render "articles/collection",
                        rendered_article: @article,
@@ -198,6 +197,10 @@
             <div class="js-billboard-container body-billboard-container" data-async-url="<%= article_billboard_path(username: @article.username, slug: @article.slug, placement_area: :post_body_bottom) %>"></div>
           <% end %>
         </div>
+        <div style="margin: 2em 0 2em 0">
+          <a href="https://discord.web3dev.com.br/"><img src="<%= asset_path("w3d-discord-cta.png") %>" style="max-width: 100%" /></a>
+        </div>
+
         <%= render "articles/full_comment_area" %>
 
       </article>

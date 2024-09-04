@@ -70,6 +70,8 @@ fr:
         font: Base Reading Font
         level: What is your approximate experience level (1-5)?
         level_desc: This will not be displayed on your profile or anywhere publicly. It helps gently determine what content you are shown along with tags you follow etc.
+        metamask: Metamask
+        metamask_description: Connectez votre Metamask pour recevoir des récompenses telles que des primes, des nfts et bien plus encore tout en contribuant à notre projet et en faisant la publicité de votre contenu.
         navbar: Site Navbar
         rich: Rich + markdown
         save: Save
@@ -272,3 +274,7 @@ fr:
         Organization: Organisation
         Extensions: Extensions
       save_profile: Save Profile Information
+      wallet:
+        connect_wallet: Connecter le portefeuille
+        delete_wallet: Supprimer le portefeuille
+        wallets: Portefeuilles

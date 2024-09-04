@@ -113,6 +113,8 @@ class User < ApplicationRecord
   has_many :languages, class_name: "UserLanguage", inverse_of: :user, dependent: :delete_all
   has_many :user_visit_contexts, dependent: :delete_all
 
+  has_many :wallets, dependent: :delete_all
+
   mount_uploader :profile_image, ProfileImageUploader
 
   devise :invitable, :omniauthable, :registerable, :database_authenticatable, :confirmable, :rememberable,

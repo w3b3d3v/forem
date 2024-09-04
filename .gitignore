@@ -124,6 +124,11 @@ doc/
 # spec reports
 /spec/reports
 /junit.xml
+<<<<<<< Updated upstream
+=======
 
 /app/assets/builds/*
 !/app/assets/builds/.keep
+
+db/backups
+>>>>>>> Stashed changes

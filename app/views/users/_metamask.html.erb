@@ -1,0 +1,107 @@
+<div class="crayons-card crayons-card--content-rows">
+  <h2 class="crayons-subtitle-1">
+    <%= t("views.settings.custom.metamask") %>
+  </h2>
+  <div class="crayons-field">
+    <div class="theme-selector-field grid grid-cols-5">
+    </div>
+    <p>
+      <%= t("views.settings.custom.metamask_description") %>
+    </p>
+    <span id='wallet_addresses'>
+      <% if @user.wallets.any? %>
+        <h2>
+          <%= t("views.settings.wallet.wallets") %>:
+        </h2>
+        <% @user.wallets.each do |wallet| %>
+          <p id='wallet_address_paragraph'>
+            <%= wallet.address %>
+          </p>
+          <% end %>
+            <% end %>
+    </span>
+    <div>
+        <div>
+          <button class='crayons-btn crayons-btn--bg delete-wallet'
+            onclick="deleteWallet(document.querySelector('#wallet_address_paragraph').innerText)"
+            style="display: <%= @user.wallets.any? ? " block" : "none" %>">
+            <%= t("views.settings.wallet.delete_wallet") %>
+          </button>
+          <button class='crayons-btn crayons-btn--bg connect-wallet' onclick="connectWallet()"
+            style="display: <%= @user.wallets.any? ? " none" : "block" %>">
+            <%= t("views.settings.wallet.connect_wallet") %>
+          </button>
+
+          <script>
+            var connectWallet = async () => {
+              const accounts = await window.ethereum.request({
+                method: 'eth_requestAccounts',
+              });
+              await window.ethereum.request({
+                method: 'personal_sign',
+                params: ['Login Web3', accounts[0]],
+              });
+              await fetch('/users/connect_wallet', {
+                method: 'POST',
+                headers: {
+                  'X-CSRF-Token': window.csrfToken,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  address: accounts[0],
+                }),
+              })
+                .then((res) => {
+                  if(!res.ok) return;
+                  return res.json();
+                })
+                .then((data) => {
+                  if(!data) return;
+                  const connectButton = document.querySelector('.connect-wallet');
+                  const deleteButton = document.querySelector('.delete-wallet');
+                  const span = document.querySelector('#wallet_addresses');
+                  span.innerHTML = '';
+                  const h2 = document.createElement('h2');
+                  const p = document.createElement('p');
+                  p.setAttribute('id', 'wallet_address_paragraph');
+                  h2.innerHTML = 'Wallet:';
+                  span.appendChild(h2);
+                  p.innerHTML = data.address;
+                  span.appendChild(p);
+                  span.style.display = 'block';
+                  connectButton.style.display = 'none';
+                  deleteButton.style.display = 'block';
+                });
+            };
+            var deleteWallet = async (address) => {
+              await fetch('/users/delete_wallet', {
+                method: 'DELETE',
+                headers: {
+                  'X-CSRF-Token': window.csrfToken,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  address,
+                }),
+              })
+                .then((res) => {
+                  if(!res.ok) return;
+                  return res.json();
+                })
+                .then((data) => {
+                  console.error(data);
+                  if(!data) return;
+                  const wallets = document.querySelector('#wallet_addresses');
+                  const connectButton = document.querySelector('.connect-wallet');
+                  const deleteButton = document.querySelector('.delete-wallet');
+                  wallets.style.display = 'none';
+                  deleteButton.style.display = 'none';
+                  connectButton.style.display = 'block';
+                });
+            };
+
+          </script>
+        </div>
+    </div>
+  </div>
+</div>

@@ -7,6 +7,7 @@ module Constants
       Account
       Organization
       Extensions
+      Metamask
     ].freeze
   end
 end

@@ -3,8 +3,13 @@ class UsersController < ApplicationController
   before_action :check_suspended, only: %i[update update_password]
   before_action :set_user,
                 only: %i[update update_password request_destroy full_delete remove_identity]
+  # rubocop:disable Layout/LineLength
   after_action :verify_authorized,
-               except: %i[index signout_confirm add_org_admin remove_org_admin remove_from_org confirm_destroy]
+               except: %i[index signout_confirm add_org_admin remove_org_admin remove_from_org confirm_destroy connect_wallet delete_wallet]
+  # rubocop:enable Layout/LineLength
+  before_action :authenticate_user!, only: %i[onboarding_update onboarding_checkbox_update
+                                              connect_wallet delete_wallet ]
+
   before_action :initialize_stripe, only: %i[edit]
 
   def index
@@ -297,6 +302,26 @@ class UsersController < ApplicationController
     end
   end
 
+  def connect_wallet
+    @user = current_user
+    wallet = @user.wallets.new(wallet_params)
+    if @user.wallets.count.zero? && wallet.save
+      render json: wallet
+    else
+      render json: { errors: "error" }, status: :unprocessable_entity
+    end
+  end
+
+  def delete_wallet
+    @user = current_user
+    wallet = @user.wallets.find_by(address: params[:address])
+    if wallet.delete
+      render json: { message: "Wallet Deleted" }
+    else
+      render json: { errors: "error" }, status: :unprocessable_entity
+    end
+  end
+
   private
 
   def handle_organization_tab
@@ -382,5 +407,9 @@ class UsersController < ApplicationController
     options_to_merge = methods.empty? ? {} : { methods: methods }
 
     default_options.merge(options_to_merge)
+  end
+
+  def wallet_params
+    params.permit(:address)
   end
 end

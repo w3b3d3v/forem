@@ -3,6 +3,7 @@ import { render, within } from '@testing-library/preact';
 import '@testing-library/jest-dom';
 import { axe } from 'jest-axe';
 import { Help } from '../Help';
+import { locale , localeArray } from '../../../utilities/locale';
 
 describe('<Help />', () => {
   it('should have no a11y violations', async () => {
@@ -37,20 +38,12 @@ describe('<Help />', () => {
     );
     const articleTitle = within(getByTestId('title-help'));
 
-    expect(getByTestId('article-form__help-section')).toBeInTheDocument();
-    expect(
-      getByRole('heading', { name: /writing a great post title/i }),
-    ).toBeInTheDocument();
+    getByTestId('article-form__help-section');
+    getByText(locale('views.editor.help.title.title'));
 
     expect(
-      articleTitle.getByText(
-        'Think of your post title as a super short (but compelling!) description — like an overview of the actual post in one short sentence.',
-      ),
-    ).toBeInTheDocument();
-
-    expect(
-      articleTitle.getByText(
-        'Use keywords where appropriate to help ensure people can find your post by search.',
+      titleHelp.textContent.includes(
+        localeArray('views.editor.help.title.itens'),
       ),
     ).toBeInTheDocument();
   });

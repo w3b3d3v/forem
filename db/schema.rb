@@ -1438,6 +1438,14 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_14_184735) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "wallets", force: :cascade do |t|
+    t.string "address"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id"], name: "index_wallets_on_user_id"
+  end
+
   create_table "welcome_notifications", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -1528,6 +1536,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_08_14_184735) do
   add_foreign_key "users_roles", "roles", on_delete: :cascade
   add_foreign_key "users_roles", "users", on_delete: :cascade
   add_foreign_key "users_settings", "users"
+  add_foreign_key "wallets", "users"
   create_trigger("update_reading_list_document", :generated => true, :compatibility => 1).
       on("articles").
       name("update_reading_list_document").

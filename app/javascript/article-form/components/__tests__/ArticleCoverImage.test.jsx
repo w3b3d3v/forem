@@ -9,6 +9,7 @@ import { axe } from 'jest-axe';
 import fetch from 'jest-fetch-mock';
 import '@testing-library/jest-dom';
 import { ArticleCoverImage } from '../ArticleCoverImage';
+import { locale } from '../../../utilities/locale';
 
 global.fetch = fetch;
 
@@ -55,7 +56,7 @@ describe('<ArticleCoverImage />', () => {
     const { getByLabelText } = render(
       <ArticleCoverImage mainImage="" onMainImageUrlChange={jest.fn()} />,
     );
-    const uploadInput = getByLabelText(/add a cover image/i);
+    const uploadInput = getByLabelText(locale('views.editor.cover_image.add'));
     expect(uploadInput.getAttribute('type')).toEqual('file');
   });
 
@@ -131,7 +132,7 @@ describe('<ArticleCoverImage />', () => {
       expect(getByRole('img', { name: 'Post cover' })).toBeInTheDocument();
       expect(getByRole('button', { name: /remove/i })).toBeInTheDocument();
 
-      const inputEl = getByLabelText('Change', { exact: false });
+      const inputEl = getByLabelText(locale('views.editor.cover_image.change'), { exact: false });
       const file = new File(['(⌐□_□)'], 'chucknorris.png', {
         type: 'image/png',
       });
@@ -167,7 +168,7 @@ describe('<ArticleCoverImage />', () => {
         onMainImageUrlChange={onMainImageUrlChange}
       />,
     );
-    const inputEl = getByLabelText('Change', { exact: false });
+    const inputEl = getByLabelText(locale('views.editor.cover_image.change'), { exact: false });
 
     // Check the input validation settings
     expect(inputEl.getAttribute('accept')).toEqual('image/*');

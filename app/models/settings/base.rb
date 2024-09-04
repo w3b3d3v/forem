@@ -164,6 +164,16 @@ module Settings
 
     # get the setting's value, YAML decoded
     def value
+      return if self[:value].blank?
+
+      permitted_classes = [
+        Time,
+        Date,
+        BigDecimal,
+        ActiveSupport::HashWithIndifferentAccess,
+        ActiveSupport::TimeWithZone,
+        ActiveSupport::TimeZone,
+      ]
       YAML.unsafe_load(self[:value]) if self[:value].present?
     end
 
