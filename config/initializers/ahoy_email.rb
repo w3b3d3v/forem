@@ -28,30 +28,31 @@ module AhoyEmail
           existing_params = uri.query_values(Array) || []
           UTM_PARAMETERS.each do |key|
             next if existing_params.any? { |k, _v| k == key } || !options[key.to_sym]
+
             existing_params << [key, options[key.to_sym]]
           end
           uri.query_values = existing_params
         end
 
-        if options[:click] && !skip_attribute?(link, "click")
-          signature = Utils.signature(token: token, campaign: campaign, url: link["href"])
-          tracking_params = {
-            "ahoy_click" => true,
-            "t" => token,
-            "s" => signature,
-            "u" => CGI.escape(link["href"]),
-            "c" => campaign
-          }.reject { |_k, v| v.nil? || v.to_s.empty? }
+        next unless options[:click] && !skip_attribute?(link, "click")
 
-          # Merge the existing and new tracking params
-          all_params = (uri.query_values(Array) || []) + tracking_params.to_a
-          uri.query_values = all_params
+        signature = Utils.signature(token: token, campaign: campaign, url: link["href"])
+        tracking_params = {
+          "ahoy_click" => true,
+          "t" => token,
+          "s" => signature,
+          "u" => CGI.escape(link["href"]),
+          "c" => campaign
+        }.reject { |_k, v| v.nil? || v.to_s.empty? }
 
-          # Preserve the port if present, especially for localhost in development
-          port_part = uri.port ? ":#{uri.port}" : ""
-          link["href"] = "#{uri.scheme}://#{uri.host}#{port_part}#{uri.path}"
-          link["href"] += "?#{uri.query}" unless uri.query.nil? || uri.query.empty?
-        end
+        # Merge the existing and new tracking params
+        all_params = (uri.query_values(Array) || []) + tracking_params.to_a
+        uri.query_values = all_params
+
+        # Preserve the port if present, especially for localhost in development
+        port_part = uri.port ? ":#{uri.port}" : ""
+        link["href"] = "#{uri.scheme}://#{uri.host}#{port_part}#{uri.path}"
+        link["href"] += "?#{uri.query}" if uri.query.present?
       end
       part.body = doc.to_s.gsub("&amp;", "&")
     end

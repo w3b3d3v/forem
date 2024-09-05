@@ -1022,7 +1022,7 @@ seeder.create_if_none(Badge) do
     )
   end
 
-  Badge.all.each do |badge|
+  Badge.find_each do |badge|
     admin_user.badge_achievements.create!(
       badge: badge,
       rewarding_context_message_markdown: Faker::Markdown.random,

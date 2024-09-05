@@ -4,7 +4,7 @@ module Authentication
     # Returns the authentication path for the given provider
     def self.authentication_path(provider_name, **kwargs)
       Rails.application.routes.url_helpers.public_send(
-        "user_#{provider_name}_omniauth_authorize_path", **kwargs
+        :"user_#{provider_name}_omniauth_authorize_path", **kwargs
       )
     end
 

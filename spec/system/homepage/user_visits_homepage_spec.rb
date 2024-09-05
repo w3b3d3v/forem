@@ -63,28 +63,28 @@ RSpec.describe "User visits a homepage" do
 
       it "shows expected number of links when signed out" do
         within("nav[data-testid='main-nav']", match: :first) do
-          expect(page).to have_selector(".sidebar-navigation-link", count: 1)
+          expect(page).to have_css(".sidebar-navigation-link", count: 1)
         end
 
         within("nav[data-testid='other-nav']", match: :first) do
-          expect(page).to have_selector(".sidebar-navigation-link", count: 2)
+          expect(page).to have_css(".sidebar-navigation-link", count: 2)
         end
       end
 
       it "shows the Other section when other nav links exist" do
         within("nav[data-testid='other-nav']", match: :first) do
-          expect(page).to have_selector(".other-navigation-links")
+          expect(page).to have_css(".other-navigation-links")
         end
 
         NavigationLink.other_section.destroy_all
         visit "/"
 
-        expect(page).not_to have_selector("nav[data-testid='other-nav']")
+        expect(page).to have_no_css("nav[data-testid='other-nav']")
       end
 
       it "hides link when display_to is set to logged in users only" do
         within("nav[data-testid='main-nav']", match: :first) do
-          expect(page).to have_selector(".default-navigation-links .sidebar-navigation-link", count: 1)
+          expect(page).to have_css(".default-navigation-links .sidebar-navigation-link", count: 1)
         end
       end
 
@@ -97,8 +97,8 @@ RSpec.describe "User visits a homepage" do
         visit "/"
 
         within("nav[data-testid='main-nav']", match: :first) do
-          expect(page).to have_selector(".default-navigation-links li:nth-child(1)", text: "Shop")
-          expect(page).to have_selector(".default-navigation-links li:nth-child(2)", text: "Mock")
+          expect(page).to have_css(".default-navigation-links li:nth-child(1)", text: "Shop")
+          expect(page).to have_css(".default-navigation-links li:nth-child(2)", text: "Mock")
         end
       end
     end
@@ -114,7 +114,7 @@ RSpec.describe "User visits a homepage" do
     context "when rendering broadcasts" do
       let!(:broadcast) { create(:announcement_broadcast) }
 
-      it "renders the broadcast if active", js: true do
+      it "renders the broadcast if active", :js do
         get "/async_info/base_data" # Explicitly ensure broadcast data is loaded before doing any checks
         visit "/"
         within ".broadcast-wrapper" do
@@ -122,11 +122,11 @@ RSpec.describe "User visits a homepage" do
         end
       end
 
-      it "does not render a broadcast if inactive", js: true do
+      it "does not render a broadcast if inactive", :js do
         broadcast.update!(active: false)
         get "/async_info/base_data" # Explicitly ensure broadcast data is loaded before doing any checks
         visit "/"
-        expect(page).not_to have_css(".broadcast-wrapper")
+        expect(page).to have_no_css(".broadcast-wrapper")
       end
     end
 
@@ -140,7 +140,7 @@ RSpec.describe "User visits a homepage" do
         visit "/"
       end
 
-      it "shows the followed tags", js: true do
+      it "shows the followed tags", :js do
         expect(page).to have_text("My Tags")
 
         # Need to ensure the user data is loaded before doing any checks
@@ -151,7 +151,7 @@ RSpec.describe "User visits a homepage" do
         end
       end
 
-      it "shows followed tags ordered by weight and name", js: true do
+      it "shows followed tags ordered by weight and name", :js do
         # Need to ensure the user data is loaded before doing any checks
         find("body")["data-user"]
 
@@ -214,13 +214,13 @@ RSpec.describe "User visits a homepage" do
 
       it "shows expected # of links when signed in" do
         within("nav[data-testid='main-nav']", match: :first) do
-          expect(page).to have_selector(".sidebar-navigation-link", count: 2) # it's count: 1 when signed out
+          expect(page).to have_css(".sidebar-navigation-link", count: 2) # it's count: 1 when signed out
         end
       end
 
       it "shows link when display_to is set to logged_in" do
         within("nav[data-testid='main-nav']", match: :first) do
-          expect(page).to have_selector(".default-navigation-links li:nth-child(2)", text: "Beauty")
+          expect(page).to have_css(".default-navigation-links li:nth-child(2)", text: "Beauty")
         end
       end
     end

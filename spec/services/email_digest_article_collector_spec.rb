@@ -54,7 +54,7 @@ RSpec.describe EmailDigestArticleCollector, type: :service do
                              user_id: user.id, sent_at: Time.current.utc)
       end
 
-      it "will return no articles when user shouldn't receive any" do
+      it "returns no articles when user shouldn't receive any" do
         Timecop.freeze(Settings::General.periodic_email_digest.days.from_now - 1) do
           articles = described_class.new(user).articles_to_send
           expect(articles).to be_empty

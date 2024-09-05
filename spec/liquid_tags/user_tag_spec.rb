@@ -27,7 +27,7 @@ RSpec.describe UserTag, type: :liquid_tag do
   end
 
   context "when given an invalid username" do
-    it "renders a missing username and name", aggregate_failures: true do
+    it "renders a missing username and name", :aggregate_failures do
       liquid = generate_user_tag("nonexistent user")
 
       expect(liquid.render).to include("[deleted user]")

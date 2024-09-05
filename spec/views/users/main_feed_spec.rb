@@ -5,8 +5,7 @@ RSpec.describe "users/show" do
 
   before do
     without_partial_double_verification do
-      allow(view).to receive(:internal_navigation?).and_return(false)
-      allow(view).to receive(:feed_style_preference).and_return("basic")
+      allow(view).to receive_messages(internal_navigation?: false, feed_style_preference: "basic")
     end
     assign(:user, user)
     assign(:stories, [])
@@ -29,7 +28,7 @@ RSpec.describe "users/show" do
 
       it "renders no featured stories" do
         render
-        expect(rendered).not_to have_css(".featured-story-marker")
+        expect(rendered).to have_no_css(".featured-story-marker")
         expect(rendered).to have_css(".crayons-story__body")
       end
     end
@@ -50,8 +49,8 @@ RSpec.describe "users/show" do
 
       it "renders comments as required" do
         render
-        expect(rendered).not_to have_css(".crayons-story__body")
-        expect(rendered).not_to have_css("#comments-locked-cta")
+        expect(rendered).to have_no_css(".crayons-story__body")
+        expect(rendered).to have_no_css("#comments-locked-cta")
         expect(rendered).to have_css(".profile-comment-row")
       end
     end
@@ -68,9 +67,9 @@ RSpec.describe "users/show" do
 
     it "renders no featured stories" do
       render
-      expect(rendered).not_to have_css(".featured-story-marker")
+      expect(rendered).to have_no_css(".featured-story-marker")
       expect(rendered).to have_css(".crayons-story__body")
-      expect(rendered).not_to have_css("#comments-locked-cta")
+      expect(rendered).to have_no_css("#comments-locked-cta")
     end
   end
 
@@ -90,7 +89,7 @@ RSpec.describe "users/show" do
 
     it "does not render comments, but sign-in CTA" do
       render
-      expect(rendered).not_to have_css(".profile-comment-row")
+      expect(rendered).to have_no_css(".profile-comment-row")
       expect(rendered).to have_css("#comments-locked-cta")
     end
   end
@@ -98,10 +97,10 @@ RSpec.describe "users/show" do
   it "renders without exception" do
     render
     expect(rendered).to have_css(".profile-header")
-    expect(rendered).not_to have_css(".featured-story-marker")
-    expect(rendered).not_to have_css(".crayons-story__body")
-    expect(rendered).not_to have_css(".profile-comment-row")
-    expect(rendered).not_to have_css("#comments-locked-cta")
+    expect(rendered).to have_no_css(".featured-story-marker")
+    expect(rendered).to have_no_css(".crayons-story__body")
+    expect(rendered).to have_no_css(".profile-comment-row")
+    expect(rendered).to have_no_css("#comments-locked-cta")
   end
 
   # context "when there are pinned stories" do

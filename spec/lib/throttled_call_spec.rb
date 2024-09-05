@@ -4,7 +4,7 @@ class TestService
   def call(*); end
 end
 
-RSpec.describe ThrottledCall, throttled_call: true do
+RSpec.describe ThrottledCall, :throttled_call do
   let(:service) { TestService.new }
 
   before do

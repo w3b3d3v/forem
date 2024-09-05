@@ -125,7 +125,7 @@ module Images
       return full_url unless full_url&.starts_with?(cloudflare_prefix)
 
       uri = URI.parse(full_url)
-      match = uri.path.match(%r{https?.+})
+      match = uri.path.match(/https?.+/)
       CGI.unescape(match[0]) if match
     end
 

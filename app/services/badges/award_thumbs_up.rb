@@ -19,7 +19,7 @@ module Badges
       user_thumbsup_counts = get_user_thumbsup_counts
 
       user_thumbsup_counts.each do |user_id, count|
-        THUMBS_UP_BADGES.each do |threshold, _|
+        THUMBS_UP_BADGES.each_key do |threshold|
           break unless count >= threshold
 
           badge_id = badge_ids[threshold]

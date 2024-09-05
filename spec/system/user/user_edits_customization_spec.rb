@@ -10,8 +10,8 @@ RSpec.describe "User edits their Customization settings" do
   end
 
   describe "visiting Customization section" do
-    it "makes the 'Save Button' footer sticky once a theme is selected", js: true do
-      expect(page).not_to have_css(".sticky")
+    it "makes the 'Save Button' footer sticky once a theme is selected", :js do
+      expect(page).to have_no_css(".sticky")
 
       choose("Dark Theme")
 

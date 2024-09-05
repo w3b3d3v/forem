@@ -312,7 +312,6 @@ RSpec.describe AbExperiment::GoalConversionHandler do
         expect(FieldTest::Event.last.name).to eq(goal)
         expect(FieldTest::Event.all.size).to be(1)
       end
-
     end
   end
 end

@@ -27,7 +27,7 @@ RSpec.describe "Authenticating with Email" do
         click_button("Sign up", match: :first)
       end
 
-      it "creates a new user", js: true do
+      it "creates a new user", :js do
         expect do
           sign_up_user
         end.to change(User, :count).by(1)
@@ -123,7 +123,7 @@ RSpec.describe "Authenticating with Email" do
 
     it "doesn't present the authentication option" do
       visit sign_up_path(state: "new-user")
-      expect(page).not_to have_text(sign_in_link)
+      expect(page).to have_no_text(sign_in_link)
       expect(page).to have_text("invite only")
     end
   end
@@ -135,7 +135,7 @@ RSpec.describe "Authenticating with Email" do
       fill_in "Email", with: "doesnotexist@example.com"
       click_button "Send reset link"
 
-      expect(page).not_to have_text("Email not found")
+      expect(page).to have_no_text("Email not found")
     end
   end
 

@@ -166,7 +166,7 @@ module Settings
     def value
       return if self[:value].blank?
 
-      permitted_classes = [
+      [
         Time,
         Date,
         BigDecimal,

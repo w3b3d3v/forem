@@ -15,3 +15,9 @@ if (userLocale) {
 export function locale(term, params = {}) {
   return i18n.t(term, params);
 }
+
+export function localeArray(term) {
+  return `${i18n.t(term)}`.match(/^\[missing.*translation\]$/)
+    ? []
+    : i18n.t(term);
+}

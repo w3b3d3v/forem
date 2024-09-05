@@ -1,6 +1,6 @@
 require "rails_helper"
 
-describe Rack, ".attack", throttle: true, type: :request do
+describe Rack, ".attack", :throttle, type: :request do
   before do
     allow(Rails).to receive(:cache) { ActiveSupport::Cache.lookup_store(:redis_cache_store) }
     allow(Honeycomb).to receive(:add_field)
@@ -143,7 +143,7 @@ describe Rack, ".attack", throttle: true, type: :request do
       sign_in user
     end
 
-    # rubocop:disable RSpec/AnyInstance, RSpec/ExampleLength
+    # rubocop:disable RSpec/AnyInstance
     it "throttles viewing tags", :aggregate_failures do
       allow_any_instance_of(Stories::TaggedArticlesController).to receive(:tagged_count).and_return(0)
       allow_any_instance_of(Stories::TaggedArticlesController).to receive(:stories_by_timeframe)

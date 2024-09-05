@@ -371,7 +371,7 @@ RSpec.describe "UserSettings" do
       it "empties their associated username" do
         delete users_remove_identity_path, params: { provider: provider }
 
-        expect(user.public_send("#{provider}_username")).to be_nil
+        expect(user.public_send(:"#{provider}_username")).to be_nil
       end
 
       it "updates the profile_updated_at timestamp" do

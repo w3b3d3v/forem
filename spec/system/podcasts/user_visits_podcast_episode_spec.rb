@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe "User visits podcast show page", js: true do
+RSpec.describe "User visits podcast show page", :js do
   let(:podcast) { create(:podcast) }
   let(:podcast_episode) { create(:podcast_episode, podcast_id: podcast.id) }
   let(:single_quote_episode) { create(:podcast_episode, title: "What's up doc?!") }
@@ -14,7 +14,7 @@ RSpec.describe "User visits podcast show page", js: true do
     expect(result).to be false
   end
 
-  it "they see the content of the hero", :flaky, js: true do
+  it "they see the content of the hero", :flaky, :js do
     visit podcast_episode.path.to_s
 
     expect(page).to have_text(podcast_episode.title)
@@ -47,7 +47,7 @@ RSpec.describe "User visits podcast show page", js: true do
   end
 
   context "when episode may not be playable" do
-    it "displays status when episode is not reachable by https", js: true do
+    it "displays status when episode is not reachable by https", :js do
       podcast_episode = create(:podcast_episode, https: false)
       visit podcast_episode.path.to_s
 
@@ -62,9 +62,9 @@ RSpec.describe "User visits podcast show page", js: true do
 
     it "doesn't display status_notice" do
       visit podcast_episode.path.to_s
-      expect(page).not_to have_text("Random status notice")
-      expect(page).not_to have_text(I18n.t("views.podcasts.statuses.unplayable"))
-      expect(page).not_to have_text("Click here to download")
+      expect(page).to have_no_text("Random status notice")
+      expect(page).to have_no_text(I18n.t("views.podcasts.statuses.unplayable"))
+      expect(page).to have_no_text("Click here to download")
     end
   end
 
@@ -82,11 +82,11 @@ RSpec.describe "User visits podcast show page", js: true do
     let(:comment) { create(:comment, user_id: user.id, commentable: podcast_episode) }
     let!(:comment2) { create(:comment, user_id: user.id, commentable: podcast_episode, parent: comment) }
 
-    it "sees the comments", js: true do
+    it "sees the comments", :js do
       visit podcast_episode.path.to_s
 
-      expect(page).to have_selector(".comment--deep-0#comment-node-#{comment.id}", visible: :visible, count: 1)
-      expect(page).to have_selector(".comment--deep-1#comment-node-#{comment2.id}", visible: :visible, count: 1)
+      expect(page).to have_css(".comment--deep-0#comment-node-#{comment.id}", visible: :visible, count: 1)
+      expect(page).to have_css(".comment--deep-1#comment-node-#{comment2.id}", visible: :visible, count: 1)
     end
   end
 end

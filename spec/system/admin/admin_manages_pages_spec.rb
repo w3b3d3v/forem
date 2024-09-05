@@ -49,9 +49,9 @@ RSpec.describe "Admin manages pages" do
 
     it "does not show any of the links in the pages table" do
       within(".pages__table") do
-        expect(page).not_to have_content("Terms of Use")
-        expect(page).not_to have_content("Code of Conduct")
-        expect(page).not_to have_content("Privacy Policy")
+        expect(page).to have_no_content("Terms of Use")
+        expect(page).to have_no_content("Code of Conduct")
+        expect(page).to have_no_content("Privacy Policy")
       end
     end
 
@@ -60,20 +60,20 @@ RSpec.describe "Admin manages pages" do
       click_on("Edit")
       fill_in "page_description", with: ""
       click_on("Update Page")
-      expect(page).not_to have_current_path(admin_pages_path)
+      expect(page).to have_no_current_path(admin_pages_path)
       fill_in "page_description", with: "Walk without rhythm"
       fill_in "page_slug", with: "不"
       click_on("Update Page")
-      expect(page).not_to have_current_path(admin_pages_path)
+      expect(page).to have_no_current_path(admin_pages_path)
     end
 
     it "allows a page to be deleted" do
       expect(page).to have_content("Test Page")
       click_on("Edit")
-      expect(page).to have_selector("input[type=submit][value='Delete Page']")
+      expect(page).to have_css("input[type=submit][value='Delete Page']")
       click_on("Delete Page")
       expect(page).to have_current_path(admin_pages_path)
-      expect(page).not_to have_content("Test Page")
+      expect(page).to have_no_content("Test Page")
     end
   end
 
@@ -158,7 +158,7 @@ RSpec.describe "Admin manages pages" do
       it "does not give admins the option to set a lock screen" do
         allow(ForemInstance).to receive(:private).and_return(false)
         visit edit_admin_page_path(new_landing_page.id)
-        expect(page).not_to have_content("Use as 'Locked Screen'")
+        expect(page).to have_no_content("Use as 'Locked Screen'")
       end
     end
   end

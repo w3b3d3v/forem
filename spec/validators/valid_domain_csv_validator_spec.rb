@@ -26,7 +26,7 @@ RSpec.describe ValidDomainCsvValidator do
 
   it "marks invalid a domain with a dash as a prefix" do
     model.domains = ["-seo-hunt.com"]
-    expect(model).to be_invalid
+    expect(model).not_to be_valid
   end
 
   it "marks valid an array of domains" do
@@ -36,6 +36,6 @@ RSpec.describe ValidDomainCsvValidator do
 
   it "marks invalid an array of domains if one is invalid" do
     model.domains = ["hello.com", "world.org", "notadomain"]
-    expect(model).to be_invalid
+    expect(model).not_to be_valid
   end
 end

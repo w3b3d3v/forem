@@ -9,7 +9,7 @@ class ReactionPolicy < ApplicationPolicy
   end
 
   def api?
-    return true if user_any_admin?
+    true if user_any_admin?
   end
 
   def index?

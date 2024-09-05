@@ -13,7 +13,7 @@ RSpec.describe "User searches users" do
     not_followed_user
   end
 
-  it "shows the correct follow buttons", js: true do
+  it "shows the correct follow buttons", :js do
     visit "/search?q=&filters=class_name:User"
 
     expect(JSON.parse(find_button(I18n.t("core.edit_profile"))["data-info"])["id"]).to eq(current_user.id)

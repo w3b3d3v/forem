@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe "Viewing a comment", js: true do
+RSpec.describe "Viewing a comment", :js do
   let(:user) { create(:user) }
   let(:article) { create(:article, user_id: user.id, show_comments: true) }
   let(:comment) { create(:comment, commentable: article, user: user) }
@@ -25,7 +25,7 @@ RSpec.describe "Viewing a comment", js: true do
       visit comment.path
       timestamp = comment.decorate.published_timestamp
 
-      expect(page).to have_selector(".comment-date time[datetime='#{timestamp}']")
+      expect(page).to have_css(".comment-date time[datetime='#{timestamp}']")
     end
 
     it "shows the published date in the user's local time zone" do
@@ -33,7 +33,7 @@ RSpec.describe "Viewing a comment", js: true do
       visit comment.path
       date = comment.created_at.getlocal.strftime("%b %-d")
 
-      expect(page).to have_selector(".comment-date time", text: date)
+      expect(page).to have_css(".comment-date time", text: date)
     end
   end
 
@@ -48,7 +48,7 @@ RSpec.describe "Viewing a comment", js: true do
       visit comment.path
       date = comment.created_at.getlocal.strftime("%b %-d '%y")
 
-      expect(page).to have_selector(".comment-date time", text: date)
+      expect(page).to have_css(".comment-date time", text: date)
     end
   end
 

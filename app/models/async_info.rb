@@ -77,7 +77,7 @@ class AsyncInfo
     false
   end
 
-  def feed_style_preference_variable(user)
+  def feed_style_preference_variable(_user)
     # TODO: Let users set their own feed style preference
     # Currently only at app level
 

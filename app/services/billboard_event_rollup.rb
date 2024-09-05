@@ -56,14 +56,10 @@ class BillboardEventRollup
   attr_reader :aggregator, :relation
 
   def rollup(date)
-    created = []
-
     rows = relation.where(created_at: date.all_day)
-    aggregate_into_groups(rows).each do |compacted_events|
-      created << compact_records(date, compacted_events)
+    aggregate_into_groups(rows).map do |compacted_events|
+      compact_records(date, compacted_events)
     end
-
-    created
   end
 
   private

@@ -27,7 +27,7 @@ module StringAttributeCleaner
           next unless respond_to?(attr)
           next if public_send(attr).present?
 
-          public_send("#{attr}=", nil)
+          public_send(:"#{attr}=", nil)
         end
       end
     end

@@ -47,7 +47,7 @@ module Notifications
       end
 
       def should_send_milestone?
-        return if article_published_behind_time?
+        return false if article_published_behind_time?
 
         last_milestone_notification = Notification.find_by(
           user_id: article.user_id,

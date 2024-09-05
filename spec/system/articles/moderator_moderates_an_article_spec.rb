@@ -11,17 +11,17 @@ RSpec.describe "Views an article" do
     visit "/#{user.username}/#{article.slug}/mod"
   end
 
-  it "shows an article", js: true do
+  it "shows an article", :js do
     visit "/#{user.username}/#{article.slug}"
 
     expect(page).to have_content(article.title)
   end
 
-  it "lets moderators visit /mod", js: true do
+  it "lets moderators visit /mod", :js do
     visit "/#{user.username}/#{article.slug}/mod"
-    expect(page).to have_selector('button[data-category="thumbsdown"][data-reactable-type="Article"]')
-    expect(page).to have_selector('button[data-category="vomit"][data-reactable-type="Article"]')
-    expect(page).to have_selector('button[data-category="vomit"][data-reactable-type="User"]')
+    expect(page).to have_css('button[data-category="thumbsdown"][data-reactable-type="Article"]')
+    expect(page).to have_css('button[data-category="vomit"][data-reactable-type="Article"]')
+    expect(page).to have_css('button[data-category="vomit"][data-reactable-type="User"]')
     expect(page).to have_button(class: "level-rating-button")
   end
 
@@ -30,6 +30,6 @@ RSpec.describe "Views an article" do
     create(:comment, commentable: article, user: commenter, hidden_by_commentable_user: true)
     visit "/#{user.username}/#{article.slug}/mod"
     expect(page).to have_content("Hidden Comments")
-    expect(page).to have_selector("ul#hidden-comments")
+    expect(page).to have_css("ul#hidden-comments")
   end
 end

@@ -17,7 +17,7 @@ module ArticlesHelper
   end
 
   def has_vid?(article)
-    return if article.processed_html.blank?
+    return false if article.processed_html.blank?
 
     article.processed_html.include?("youtube.com/embed/") ||
       article.processed_html.include?("player.vimeo.com") ||

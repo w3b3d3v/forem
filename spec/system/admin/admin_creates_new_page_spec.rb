@@ -10,7 +10,7 @@ RSpec.describe "Admin creates new page" do
       visit new_admin_page_path(slug: "code-of-conduct")
     end
 
-    it "will pre-populate the fields correctly" do
+    it "pre-populates the fields correctly" do
       expect(find_field("page[title]").value).to eq("Code of Conduct")
       expect(find_field("page[slug]").value).to eq("code-of-conduct")
       expect(find_field("page[is_top_level_path]").value).to eq("1")

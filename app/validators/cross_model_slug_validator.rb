@@ -38,7 +38,7 @@ class CrossModelSlugValidator < ActiveModel::EachValidator
 
   def unique_across_models?(record, attribute, value)
     # attribute_changed? is likely redundant, but is much cheaper than the cross-model exists check
-    return false unless record.public_send("#{attribute}_changed?")
+    return false unless record.public_send(:"#{attribute}_changed?")
     return false unless already_exists?(value)
 
     record.errors.add(attribute, I18n.t("validators.cross_model_slug_validator.is_taken"))

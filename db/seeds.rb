@@ -39,7 +39,7 @@ seeder.create_if_none(Organization) do
     Organization.create!(
       name: Faker::Company.name,
       summary: Faker::Company.bs,
-      profile_image: logo = Rails.root.join("app/assets/images/#{rand(1..40)}.png").open,
+      profile_image: Rails.root.join("app/assets/images/#{rand(1..40)}.png").open,
       url: Faker::Internet.url,
       slug: "org#{rand(10_000)}",
       github_username: "org#{rand(10_000)}",
@@ -177,7 +177,7 @@ users_in_random_order = seeder.create_if_none(User, num_users) do
 
     2.times do
       OrganizationMembership.create!(
-        user_id: User.where.not(id: OrganizationMembership.pluck(:user_id)).order(Arel.sql("RANDOM()")).first.id,
+        user_id: User.where.not(id: OrganizationMembership.select(:user_id)).order(Arel.sql("RANDOM()")).first.id,
         organization_id: organization.id,
         type_of_user: "member",
       )
@@ -251,7 +251,7 @@ end
 num_articles = 25 * SEEDS_MULTIPLIER
 
 seeder.create_if_none(Article, num_articles) do
-  user_ids = User.all.ids
+  user_ids = User.ids
   public_categories = %w[like unicorn]
 
   num_articles.times do |i|
@@ -470,7 +470,7 @@ seeder.create_if_none(FeedbackMessage) do
   3.times do
     article_id = Article
       .left_joins(:reactions)
-      .where.not(articles: { id: Reaction.article_vomits.pluck(:reactable_id) })
+      .where.not(articles: { id: Reaction.article_vomits.select(:reactable_id) })
       .order(Arel.sql("RANDOM()"))
       .first
       .id

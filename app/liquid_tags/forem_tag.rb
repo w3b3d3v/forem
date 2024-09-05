@@ -29,7 +29,8 @@ module ForemTag
     match = pattern_match_for(link, COMBINED_REGEXP)
     return unless match
     return user_or_org(match) if match.names.include?("name")
-    return podcast_or_link(match) if match.names.include?("podcast")
+
+    podcast_or_link(match) if match.names.include?("podcast")
   end
 
   def self.pattern_match_for(input, regex_options)
@@ -40,7 +41,8 @@ module ForemTag
 
   def self.user_or_org(match)
     return UserTag if User.find_by(username: match[:name], registered: true)
-    return OrganizationTag if Organization.find_by(slug: match[:name])
+
+    OrganizationTag if Organization.find_by(slug: match[:name])
   end
 
   def self.podcast_or_link(match)

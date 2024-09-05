@@ -20,11 +20,11 @@ RSpec.describe "Creating an article with the editor" do
     sign_in user
   end
 
-  it "creates a new article", :flaky, js: true do
+  it "creates a new article", :flaky, :js do
     visit new_path
     fill_in "article_body_markdown", with: template
     click_button "Save changes"
-    expect(page).to have_selector("header h1", text: "Sample Article")
+    expect(page).to have_css("header h1", text: "Sample Article")
   end
 
   context "with an active announcement" do
@@ -34,20 +34,20 @@ RSpec.describe "Creating an article with the editor" do
       visit new_path
     end
 
-    it "does not render the announcement broadcast", js: true do
-      expect(page).not_to have_css(".broadcast-wrapper")
-      expect(page).not_to have_selector(".broadcast-data")
-      expect(page).not_to have_text("Hello, World!")
+    it "does not render the announcement broadcast", :js do
+      expect(page).to have_no_css(".broadcast-wrapper")
+      expect(page).to have_no_css(".broadcast-data")
+      expect(page).to have_no_text("Hello, World!")
     end
   end
 
-  context "with Runkit tag", js: true do
+  context "with Runkit tag", :js do
     it "creates a new article with a Runkit tag" do
       visit new_path
       fill_in "article_body_markdown", with: template_with_runkit_tag
       click_button "Save changes"
 
-      expect(page).not_to have_current_path(new_path)
+      expect(page).to have_no_current_path(new_path)
       expect_runkit_tag_to_be_active
     end
 
@@ -56,7 +56,7 @@ RSpec.describe "Creating an article with the editor" do
       fill_in "article_body_markdown", with: template_with_runkit_tag_with_preamble
       click_button "Save changes"
 
-      expect(page).not_to have_current_path(new_path)
+      expect(page).to have_no_current_path(new_path)
       expect_runkit_tag_to_be_active(count: 2)
     end
 
@@ -90,7 +90,7 @@ RSpec.describe "Creating an article with the editor" do
         .and_return(true)
     end
 
-    it "displays a rate limit warning", :flaky, js: true do
+    it "displays a rate limit warning", :flaky, :js do
       visit new_path
       fill_in "article_body_markdown", with: template
       click_button "Save changes"

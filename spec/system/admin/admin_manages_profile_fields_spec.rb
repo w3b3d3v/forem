@@ -21,7 +21,7 @@ RSpec.describe "Admin manages profile fields" do
 
   it "adds a profile field" do
     group_name = profile_field_group.name.gsub(/\s+/, "_")
-    within(find("#profile-field-group-#{profile_field_group.id}")) do
+    within("#profile-field-group-#{profile_field_group.id}") do
       click_button("Add Field")
       input = find("#add-#{group_name}-profile-field-modal #profile_field_label")
       input.set("Example field")

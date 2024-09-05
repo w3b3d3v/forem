@@ -20,13 +20,13 @@ module Podcasts
 
     def initialize(attributes)
       ATTRIBUTES.each do |key|
-        instance_variable_set("@#{key}", attributes[key])
+        instance_variable_set(:"@#{key}", attributes[key])
       end
     end
 
     def to_h
       ATTRIBUTES.index_with do |key|
-        instance_variable_get("@#{key}")
+        instance_variable_get(:"@#{key}")
       end
     end
   end

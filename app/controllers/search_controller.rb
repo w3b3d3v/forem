@@ -80,11 +80,10 @@ class SearchController < ApplicationController
   def feed_content
     class_name = feed_params[:class_name].to_s.inquiry
 
-    is_homepage_search = (
+    is_homepage_search =
       class_name.Article? &&
       feed_params[:search_fields].blank? &&
       feed_params[:sort_by].present?
-    )
 
     result =
       if class_name.blank?

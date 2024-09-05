@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe "User visits articles by timeframe", js: true do
+RSpec.describe "User visits articles by timeframe", :js do
   let(:author) { create(:user) }
   let(:minimum_score) { Settings::UserExperience.home_feed_minimum_score + 1 }
   let!(:article) { create(:article, score: minimum_score, user: author) }
@@ -24,11 +24,11 @@ RSpec.describe "User visits articles by timeframe", js: true do
   end
 
   def shows_correct_articles_count(count)
-    expect(page).to have_selector(".crayons-story", visible: :all, count: count)
+    expect(page).to have_css(".crayons-story", visible: :all, count: count)
   end
 
   def shows_main_article
-    expect(page).to have_selector(".crayons-story--featured", visible: :visible, count: 1)
+    expect(page).to have_css(".crayons-story--featured", visible: :visible, count: 1)
   end
 
   it "shows correct articles for all tabs for logged out users", :aggregate_failures do

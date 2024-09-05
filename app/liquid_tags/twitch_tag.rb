@@ -48,7 +48,8 @@ class TwitchTag < LiquidTagBase
 
     return player_url(match[:video_id]) if match.names.include?("video_id")
     return clip_url(match[:clip_slug]) if match.names.include?("clip_slug")
-    return player_or_clip_url(match) if match.names.include?("id")
+
+    player_or_clip_url(match) if match.names.include?("id")
   end
 
   def clip_url(id)
@@ -61,7 +62,8 @@ class TwitchTag < LiquidTagBase
 
   def player_or_clip_url(match)
     return player_url(match[:id]) if match[:id].match?(VALID_VIDEO_REGEXP)
-    return clip_url(match[:id]) if match[:id].match?(VALID_CLIP_REGEXP)
+
+    clip_url(match[:id]) if match[:id].match?(VALID_CLIP_REGEXP)
   end
 
   def parent_url

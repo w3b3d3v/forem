@@ -1,6 +1,6 @@
 FactoryBot.define do
   factory :mention do
     user
-    association :mentionable, factory: :article
+    mentionable factory: %i[article]
   end
 end

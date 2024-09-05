@@ -11,7 +11,7 @@ RSpec.describe "Organization index" do
         visit "/#{organization.slug}"
       end
 
-      it "shows the header", js: true do
+      it "shows the header", :js do
         within("h1.crayons-title") { expect(page).to have_content(organization.name) }
         within("div.profile-header__actions") do
           expect(page).to have_button(I18n.t("core.follow"))
@@ -19,7 +19,7 @@ RSpec.describe "Organization index" do
       end
 
       it "shows articles" do
-        expect(page).to have_selector("div.crayons-story", count: 2)
+        expect(page).to have_css("div.crayons-story", count: 2)
       end
 
       it "shows the sidebar" do
@@ -39,7 +39,7 @@ RSpec.describe "Organization index" do
     end
 
     context "when more articles" do
-      it "visits ok", js: true do
+      it "visits ok", :js do
         create_list(:article, 3, organization: organization)
         visit "/#{organization.slug}"
       end
@@ -65,7 +65,7 @@ RSpec.describe "Organization index" do
       user.follows.create(followable: organization)
     end
 
-    it "shows the correct button", js: true do
+    it "shows the correct button", :js do
       visit "/#{organization.slug}"
 
       within(".profile-header__actions") do
@@ -104,7 +104,7 @@ RSpec.describe "Organization index" do
 
     it "does not show the 'See all members' link" do
       within("#sidebar-left") do
-        expect(page).not_to have_content("See All Members")
+        expect(page).to have_no_content("See All Members")
       end
     end
   end
@@ -133,7 +133,7 @@ RSpec.describe "Organization index" do
           expect(page).to have_css(nth_avatar(i))
         end
 
-        expect(page).not_to have_css(nth_avatar(51))
+        expect(page).to have_no_css(nth_avatar(51))
       end
     end
 
@@ -146,7 +146,7 @@ RSpec.describe "Organization index" do
     it "displays the members on the '/members' page" do
       visit "/#{many_members_org.slug}/members"
       within(".grid-cols-1") do
-        expect(page).to have_selector(".member-item", count: 55)
+        expect(page).to have_css(".member-item", count: 55)
       end
     end
   end

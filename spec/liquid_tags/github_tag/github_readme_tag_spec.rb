@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe GithubTag::GithubReadmeTag, type: :liquid_tag, vcr: true do
+RSpec.describe GithubTag::GithubReadmeTag, :vcr, type: :liquid_tag do
   describe "#id" do
     let(:url_repository) { "https://github.com/rust-lang/rust" }
     let(:url_repository_fragment) { "https://github.com/rust-lang/rust#contributing" }

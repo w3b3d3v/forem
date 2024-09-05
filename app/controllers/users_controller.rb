@@ -3,10 +3,9 @@ class UsersController < ApplicationController
   before_action :check_suspended, only: %i[update update_password]
   before_action :set_user,
                 only: %i[update update_password request_destroy full_delete remove_identity]
-  # rubocop:disable Layout/LineLength
   after_action :verify_authorized,
-               except: %i[index signout_confirm add_org_admin remove_org_admin remove_from_org confirm_destroy connect_wallet delete_wallet]
-  # rubocop:enable Layout/LineLength
+               except: %i[index signout_confirm add_org_admin remove_org_admin remove_from_org confirm_destroy
+                          connect_wallet delete_wallet]
   before_action :authenticate_user!, only: %i[onboarding_update onboarding_checkbox_update
                                               connect_wallet delete_wallet ]
 

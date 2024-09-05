@@ -73,7 +73,7 @@ module PracticalDeveloper
     config.eager_load_paths += Dir["#{config.root}/lib"]
 
     config.middleware.use Rack::Deflater
-
+    # config.i18n.default_locale = :pt
     config.i18n.load_path += Dir[Rails.root.join("config/locales/**/*.yml")]
 
     config.i18n.fallbacks = [:en]

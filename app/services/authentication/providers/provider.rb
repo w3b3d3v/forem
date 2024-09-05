@@ -10,7 +10,7 @@ module Authentication
       end
 
       def self.user_username_field
-        "#{provider_name}_username".to_sym
+        :"#{provider_name}_username"
       end
 
       def self.official_name

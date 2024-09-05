@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe "Completing Onboarding", js: true do
+RSpec.describe "Completing Onboarding", :js do
   let(:password) { Faker::Internet.password(min_length: 8) }
   let(:user) { create(:user, password: password, password_confirmation: password, saw_onboarding: false) }
 
@@ -48,7 +48,7 @@ RSpec.describe "Completing Onboarding", js: true do
       expect(page).to have_css(".onboarding-task-card .task-card-action.js-policy-article-create")
 
       find(".onboarding-task-card .close").click
-      expect(page).not_to have_css(".onboarding-task-card")
+      expect(page).to have_no_css(".onboarding-task-card")
     end
   end
 
@@ -81,7 +81,7 @@ RSpec.describe "Completing Onboarding", js: true do
 
         wait_for_javascript
         expect(page).to have_css(".onboarding-task-card")
-        expect(page).not_to have_css(".onboarding-task-card .task-card-action.js-policy-article-create")
+        expect(page).to have_no_css(".onboarding-task-card .task-card-action.js-policy-article-create")
       end
     end
   end

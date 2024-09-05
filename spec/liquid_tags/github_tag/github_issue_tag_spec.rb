@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe GithubTag::GithubIssueTag, type: :liquid_tag, vcr: true do
+RSpec.describe GithubTag::GithubIssueTag, :vcr, type: :liquid_tag do
   describe "#id" do
     let(:url_issue) { "https://github.com/forem/forem/issues/7434" }
     let(:url_issue_with_dot_character) { "https://github.com/thepracticaldev/dev.to/issues/7434" }

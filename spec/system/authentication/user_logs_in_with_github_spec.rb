@@ -99,8 +99,7 @@ RSpec.describe "Authenticating with GitHub" do
 
       it "notifies Datadog about an OAuth unauthorized error" do
         request = double
-        allow(request).to receive(:code).and_return(401)
-        allow(request).to receive(:message).and_return("unauthorized")
+        allow(request).to receive_messages(code: 401, message: "unauthorized")
         error = OAuth::Unauthorized.new(request)
         omniauth_setup_authentication_error(error, params)
 
@@ -205,7 +204,7 @@ RSpec.describe "Authenticating with GitHub" do
 
     it "doesn't present the authentication option" do
       visit sign_up_path(state: "new-user")
-      expect(page).not_to have_text(sign_in_link)
+      expect(page).to have_no_text(sign_in_link)
       expect(page).to have_text("invite only")
     end
   end

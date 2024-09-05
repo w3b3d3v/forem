@@ -21,7 +21,7 @@ RSpec.describe "Visiting collections" do
 
   it "does not show collections without articles", :aggregate_failures do
     [collection1_without_articles, collection2_without_articles].each do |collection|
-      expect(page.body).not_to have_link("#{collection.slug} (#{collection.articles.published.size} Part Series)")
+      expect(page.body).to have_no_link("#{collection.slug} (#{collection.articles.published.size} Part Series)")
     end
   end
 end

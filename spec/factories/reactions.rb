@@ -1,37 +1,37 @@
 FactoryBot.define do
   factory :reaction do
     user
-    association :reactable, factory: :article
+    reactable factory: %i[article]
     category { "like" }
   end
 
   factory :reading_reaction, class: "Reaction" do
     user
-    association :reactable, factory: :article
+    reactable factory: %i[article]
     category { "readinglist" }
   end
 
   factory :thumbsdown_reaction, class: "Reaction" do
     user
-    association :reactable, factory: :article
+    reactable factory: %i[article]
     category { "thumbsdown" }
 
     trait :user do
-      association :reactable, factory: :user
+      reactable factory: %i[user]
     end
   end
 
   factory :vomit_reaction, class: "Reaction" do
     user { create(:user, :trusted) }
-    association :reactable, factory: :article
+    reactable factory: %i[article]
     category { "vomit" }
 
     trait :user do
-      association :reactable, factory: :user
+      reactable factory: %i[user]
     end
 
     trait :comment do
-      association :reactable, factory: :comment
+      reactable factory: %i[comment]
     end
   end
 end

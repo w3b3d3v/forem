@@ -26,8 +26,8 @@ module Settings
       end
 
       def self.provider_keys_missing(entry)
-        ::Settings::Authentication.public_send("#{entry}_key").blank? ||
-          ::Settings::Authentication.public_send("#{entry}_secret").blank?
+        ::Settings::Authentication.public_send(:"#{entry}_key").blank? ||
+          ::Settings::Authentication.public_send(:"#{entry}_secret").blank?
       end
 
       def self.email_login_disabled_with_one_or_less_auth_providers(enabled_providers)

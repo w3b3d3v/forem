@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe "User edits their extensions", js: true do
+RSpec.describe "User edits their extensions", :js do
   let(:user) { create(:user) }
   let(:github_response_body) do
     [

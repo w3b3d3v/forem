@@ -34,11 +34,11 @@ RSpec.describe "Admin invites user" do
     end
 
     it "does not contain any for fields" do
-      expect(page).not_to have_field "Email"
+      expect(page).to have_no_field "Email"
     end
 
     it "does not contain any submit buttons" do
-      expect(page).not_to have_button "Invite User"
+      expect(page).to have_no_button "Invite User"
     end
   end
 

@@ -92,8 +92,7 @@ RSpec.describe "Authenticating with Apple", vcr: { cassette_name: "fastly_sloan"
 
       it "notifies Datadog about an OAuth unauthorized error" do
         request = double
-        allow(request).to receive(:code).and_return(401)
-        allow(request).to receive(:message).and_return("unauthorized")
+        allow(request).to receive_messages(code: 401, message: "unauthorized")
         error = OAuth::Unauthorized.new(request)
         omniauth_setup_authentication_error(error)
 

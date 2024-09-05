@@ -12,7 +12,7 @@ module Images
     #   end
     def self.for(attribute)
       Module.new do
-        define_method("#{attribute}_for") do |length:|
+        define_method(:"#{attribute}_for") do |length:|
           Images::Profile.call(public_send(attribute), length: length)
         end
       end

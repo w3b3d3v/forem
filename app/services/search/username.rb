@@ -48,7 +48,7 @@ module Search
       user_ids += context.co_author_ids if context&.co_author_ids.present?
       user_ids += ::Comment.where(commentable: context).pluck(:user_id)
 
-      selects = ATTRIBUTES.map { |sym| "users.#{sym}".to_sym }
+      selects = ATTRIBUTES.map { |sym| :"users.#{sym}" }
       selects << ::User.sanitize_sql(["users.id IN (?) as has_commented", user_ids])
 
       ::User

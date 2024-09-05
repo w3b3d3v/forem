@@ -61,7 +61,7 @@ class TweetTag < LiquidTagBase
     ApplicationController.render(
       partial: PARTIAL,
       locals: {
-        id: @id,
+        id: @id
       },
     )
   end

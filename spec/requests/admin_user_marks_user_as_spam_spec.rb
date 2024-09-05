@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe "Spam Toggling for User", type: :request do
+RSpec.describe "Spam Toggling for User" do
   let!(:user) { create(:user) }
   let!(:admin) { create(:user, :admin) }
   let!(:non_admin) { create(:user) }

@@ -26,7 +26,7 @@ class OpenGraph
   DEFAULT_METHODS.each do |method_name|
     define_method(method_name) do |use_best = false|
       if use_best
-        page.public_send("best_#{method_name}".to_sym)
+        page.public_send(:"best_#{method_name}")
       else
         page.public_send(method_name)
       end

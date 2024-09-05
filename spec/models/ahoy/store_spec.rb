@@ -3,7 +3,10 @@ require "rails_helper"
 RSpec.describe Ahoy::Store do
   let(:user) { create(:user) }
   let(:data) { { user_id: user.id, started_at: Time.current } }
-  let(:mock_request) { instance_double("Request", headers: { "X-Client-Geo" => "mock_geo", "HTTP_ACCEPT_LANGUAGE" => "mock_language" }, user_agent: "mock_user_agent") }
+  let(:mock_request) do
+    instance_double(Request, headers: { "X-Client-Geo" => "mock_geo", "HTTP_ACCEPT_LANGUAGE" => "mock_language" },
+                             user_agent: "mock_user_agent")
+  end
 
   # Create a real instance of Ahoy::Store to test behavior
   let(:store) { described_class.new(request: mock_request) }

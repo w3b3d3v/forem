@@ -116,7 +116,7 @@ module FeedEvents
           "(article_id, COALESCE(user_id, 0), category) IN (#{values_clause})",
           *values,
         )
-        .each(&block)
+        .find_each(&block)
     end
   end
 end

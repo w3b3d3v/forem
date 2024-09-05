@@ -37,7 +37,7 @@ RSpec.describe "Admin manages reports" do
       click_button "Search"
 
       expect(page).to have_css("#edit_feedback_message_#{feedback_message.id}")
-      expect(page).not_to have_css("#edit_feedback_message_#{feedback_message3.id}")
+      expect(page).to have_no_css("#edit_feedback_message_#{feedback_message3.id}")
 
       clear_search_boxes
 

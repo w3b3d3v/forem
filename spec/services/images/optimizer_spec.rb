@@ -50,8 +50,7 @@ RSpec.describe Images::Optimizer, type: :service do
 
     context "when cloudflare is contextually preferred" do
       before do
-        allow(described_class).to receive(:cloudflare_contextually_preferred?).and_return(true)
-        allow(described_class).to receive(:cloudflare_enabled?).and_return(true)
+        allow(described_class).to receive_messages(cloudflare_contextually_preferred?: true, cloudflare_enabled?: true)
         allow(described_class).to receive(:cloudflare)
       end
 
@@ -65,7 +64,6 @@ RSpec.describe Images::Optimizer, type: :service do
   end
 
   describe "#cloudinary", :cloudinary do
-
     it "performs exactly like cl_image_path" do
       cloudinary_url = cl_image_path(image_url,
                                      type: "fetch",

@@ -96,7 +96,6 @@ RSpec.describe FeedEvent do
         user.id,
         goal,
       )
-
     end
 
     it "does not record a field test event if category is impression" do

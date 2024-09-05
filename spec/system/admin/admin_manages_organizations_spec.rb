@@ -23,7 +23,7 @@ RSpec.describe "Admin manages organizations" do
 
     it "does not show the remove form when there are no credits" do
       expect(page).to have_button("Add Org Credits")
-      expect(page).not_to have_button("Remove Org Credits")
+      expect(page).to have_no_button("Remove Org Credits")
     end
   end
 end

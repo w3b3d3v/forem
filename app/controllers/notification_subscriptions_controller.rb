@@ -45,7 +45,7 @@ class NotificationSubscriptionsController < ApplicationController
       @notification_subscription.notifiable.update(receive_notifications: false) if current_user_author?
     else
       @notification_subscription.config = params[:config] || "all_comments"
-      receive_notifications = (params[:config] == "all_comments" && current_user_author?)
+      receive_notifications = params[:config] == "all_comments" && current_user_author?
       @notification_subscription.notifiable.update(receive_notifications: true) if receive_notifications
       @notification_subscription.save
     end

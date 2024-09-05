@@ -1,6 +1,6 @@
 FactoryBot.define do
   factory :follow do
-    association :follower, factory: :user
-    association :followable, factory: :organization
+    follower factory: %i[user]
+    followable factory: %i[organization]
   end
 end

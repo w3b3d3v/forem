@@ -44,7 +44,7 @@ RSpec.describe Settings::Authentication::Upsert, type: :service do
     end.not_to change(Settings::Authentication, :providers)
   end
 
-  it "will save with 1 or providers providers when email_password login is not allowed" do
+  it "saves with 1 or providers providers when email_password login is not allowed" do
     expect do
       Settings::Authentication.allow_email_password_login = false
       described_class.call(

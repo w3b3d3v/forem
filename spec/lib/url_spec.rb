@@ -125,7 +125,7 @@ RSpec.describe URL, type: :lib do
     # names in these specs.
     it "returns the correct URL for an image name with no host" do
       image_url_regex = %r{
-        #{ApplicationConfig["APP_PROTOCOL"]} # https://
+        #{ApplicationConfig['APP_PROTOCOL']} # https://
         #{Settings::General.app_domain}/            # dev.to
         assets/                              # assets/ directory
         #{image_name}-                       # social-media-cover

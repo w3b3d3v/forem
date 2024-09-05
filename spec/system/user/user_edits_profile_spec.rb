@@ -29,8 +29,8 @@ RSpec.describe "User edits their profile" do
       expect(page).to have_text("Username is invalid")
     end
 
-    it "makes the 'Save Button' footer sticky once a field is filled in", js: true do
-      expect(page).not_to have_css(".sticky")
+    it "makes the 'Save Button' footer sticky once a field is filled in", :js do
+      expect(page).to have_no_css(".sticky")
 
       fill_in "user[username]", with: "sloan"
 
@@ -57,7 +57,7 @@ RSpec.describe "User edits their profile" do
 
       visit "/#{user.username}"
 
-      expect(page).not_to have_text("cthulhu")
+      expect(page).to have_no_text("cthulhu")
 
       within(".crayons-layout__sidebar-left") do
         expect(page).to have_text(left_sidebar_profile_field.label.titleize)
