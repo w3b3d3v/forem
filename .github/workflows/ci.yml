@@ -76,7 +76,7 @@ jobs:
         with:
           push: true
           context: .
-          tags: ${{ secrets.DOCKER_USERNAME }}/forem-web3dev:ci-${{ github.sha }}
+          tags: username/repository-name:ci-${{ github.sha }}
 
   audit:
     runs-on: ubuntu-latest
