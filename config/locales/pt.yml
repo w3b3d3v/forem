@@ -1,4 +1,3 @@
----
 pt:
   contact_prompts:
     if_any_questions_html: <a href="/contact">Entre em contato conosco</a> se você tiver alguma dúvida.
@@ -6,73 +5,49 @@ pt:
     if_we_can_help_html: <a href="/contact">Entre em contato conosco</a> se pudermos ajudar de alguma forma.
   core:
     add_comment: Acrescenta um comentário
-    analytics: Analytics
+    beta: beta
     comment: Comentário
-    comments: Comentários
-    community_name_is_great: "%{community_name} é ótimo!"
-    copy_link: Link de cópia
-    create_account: Criar Conta
-    dashboard: Dashboard
+    copy_link: Copiar link
     edit_profile: Editar Perfil
     follow: Seguir
     follow_back: Seguir de volta
-    follower: Seguidor
-    followers: Seguidores
     following: Seguindo
-    joined: Ingressou
-    joined_on: Juntou-se
-    like: Like
-    listings: Listagens
+    like: Curtir
     loading: carregando...
-    location: Localização
-    log_in: Login
-    more_from: Mais de
-    pinned: Fixada
-    post: Publicar
-    posts: Postagens
     reaction: Reação
-    reaction_pluralized:
-      one: reação
-      other: Reações.
-    reactions:
-      heart: Coração
-      save: Salve
-      unicorn: Unicorn
-    reply: Responder
     report_abuse: Denunciar abuso
     search: Buscar
-    series: Séries
-    settings: Configurações
-    trending_on: Trending on
-  dashboard:
-    empty_follower: Você ainda não tem nenhum seguidor...
-    empty_post: É aqui que você pode gerenciar suas postagens, mas você ainda não escreveu nada.
-    following_users: Seguindo usuários
-    loading: carregando...
-    not_following_any_users: Você não segue nenhum usuário...
-    page_title: Dashboard
-    upload_a_video: Carregar um vídeo
-    write_new_post: Escreva seu primeiro artigo agora
+    success_settings: Configurações atualizadas com sucesso.
+    counted_organization:
+      one: "%{count} organização"
+      other: "%{count} organizações"
+    counted_user:
+      one: "%{count} pessoa"
+      other: "%{count} pessoas"
+    not_following: "Você não está seguindo ninguém"
+    following_everyone: "Você está seguindo %{details} (todos)"
+    you_are_following: "Você está seguindo"
+    and: "e"
   datetime:
-    distance_in_words_ago: # https://github.com/openstreetmap/openstreetmap-website/issues/2255
+    distance_in_words_ago:
       about_x_hours:
-        one: por volta de 1 hora atrás
-        other: por volta de %{count} horas atrás
+        one: cerca de 1 hora atrás
+        other: cerca de %{count} horas atrás
       about_x_months:
-        one: por volta de 1 mês atrás
-        other: por volta de %{count} meses atrás
+        one: cerca de 1 mês atrás
+        other: cerca de %{count} meses atrás
       about_x_years:
-        one: por volta de 1 ano atrás
-        other: por volta de %{count} anos atrás
+        one: cerca de 1 ano atrás
+        other: cerca de %{count} anos atrás
       almost_x_years:
         one: quase 1 ano atrás
         other: quase %{count} anos atrás
       half_a_minute: meio minuto atrás
       less_than_x_seconds:
-        one: menos de um segundo atrás
+        one: menos de 1 segundo atrás
         other: menos de %{count} segundos atrás
       less_than_x_minutes:
-        one: menos de um minuto atrás
+        one: menos de 1 minuto atrás
         other: menos de %{count} minutos atrás
       over_x_years:
         one: mais de 1 ano atrás
@@ -110,16 +85,16 @@ pt:
         one: Expirou menos de 1 segundo atrás
         other: Expirou menos de %{count} segundos atrás
       less_than_x_minutes:
-        one: Expirou menos de um minuto atrás
+        one: Expirou menos de 1 minuto atrás
         other: Expirou menos de %{count} minutos atrás
       over_x_years:
         one: Expirou há mais de 1 ano
-        other: Expirou há mais de %{count} anos atrás
+        other: Expirou há mais de %{count} anos
       x_seconds:
         one: Expirou 1 segundo atrás
         other: Expirou %{count} segundos atrás
       x_minutes:
-        one: Expirou há 1 minuto
+        one: Expirou 1 minuto atrás
         other: Expirou %{count} minutos atrás
       x_days:
         one: Expirou 1 dia atrás
@@ -129,7 +104,7 @@ pt:
         other: Expirou %{count} meses atrás
       x_years:
         one: Expirou há 1 ano
-        other: Expirou %{count} anos atrás
+        other: Expirou há %{count} anos
     expires_in:
       about_x_hours:
         one: Expira em cerca de 1 hora
@@ -148,7 +123,7 @@ pt:
         one: Expira em menos de 1 segundo
         other: Expira em menos de %{count} segundos
       less_than_x_minutes:
-        one: Expira em menos de um minuto
+        one: Expira em menos de 1 minuto
         other: Expira em menos de %{count} minutos
       over_x_years:
         one: Expira em mais de 1 ano
@@ -168,52 +143,64 @@ pt:
       x_years:
         one: Expira em 1 ano
         other: Expira em %{count} anos
+  billboard:
+    promoted: Promovido
+    menu:
+      aria_label: Alternar menu suspenso
+      icon: Menu suspenso
+      close: Fechar
+      manage_preferences: Gerenciar preferências
+      what_is_a_billboard: O que é um billboard?
+      report_billboard: Denunciar billboard
   errors:
     messages:
       accepted: deve ser aceito
       bad_protocol: deve começar com %{protocols}
-      bad_uri: é um url inválido
-      blank: Não pode ser em branco
+      bad_uri: é uma URL inválida
+      blank: não pode estar em branco
       confirmation: não corresponde a %{attribute}
-      empty: não pode ser vazio
+      contains_prohibited_characters: contém caracteres não alfanuméricos ou caracteres Unicode proibidos
+      empty: não pode estar vazio
       equal_to: deve ser igual a %{count}
-      even: deve ser um número par
+      even: deve ser par
       exclusion: está reservado
+      general: 'Erro: %{errors}'
       greater_than: deve ser maior que %{count}
       greater_than_or_equal_to: deve ser maior ou igual a %{count}
       inclusion: não está incluído na lista
       invalid: é inválido
       less_than: deve ser menor que %{count}
       less_than_or_equal_to: deve ser menor ou igual a %{count}
-      model_invalid: 'Falha na validação: %{errors}'
+      model_invalid: 'Falha de validação: %{errors}'
       not_a_number: não é um número
       not_an_integer: deve ser um número inteiro
-      odd: deve ser um número ímpar
+      odd: deve ser ímpar
       other_than: deve ser diferente de %{count}
       present: deve estar em branco
       required: deve existir
-      taken: acabou de ser tirada
+      taken: já foi escolhido
       too_long:
-        one: é muito longo (máximo é 1 caractere)
-        other: é muito longo (máximo é %{count} caracteres)
+        one: é muito longo (máximo de 1 caractere)
+        other: é muito longo (máximo de %{count} caracteres)
       too_short:
-        one: é muito curto (mínimo é 1 caractere)
-        other: é muito curto (mínimo é %{count} caracteres)
+        one: é muito curto (mínimo de 1 caractere)
+        other: é muito curto (mínimo de %{count} caracteres)
+      try_again_email: 'Ocorreu um erro. Por favor, tente novamente ou envie um e-mail para: %{email}'
       wrong_length:
-        one:  comprimento errado (deve ser 1 caractere)
-        other: comprimento errado (deve ser %{count} caracteres)
-  settings_menu:
-    account: Conta
-    billing: Cobrança
-    customization: Customização
-    extensions: Extensões
-    notifications: Notificações
-    organization: Organização
-    profile: Perfil
+        one: tem comprimento incorreto (deve ter 1 caractere)
+        other: tem comprimento incorreto (deve ter %{count} caracteres)
   time:
     formats:
-      comment: "%B %d, %Y"
-      short: "%b %-e"
-      short_with_year: "%b %-e, %Y"
-      stackexchange: "%b %e '%y"
-      tweet: "%H:%M %p - %d %b %Y"
+      admin_user: "%Y-%m-%d, %H:%M"
+      comment: "%d de %B de %Y"
+      email_verified: "%e de %b de %y, %H:%M"
+      github: "%d de %b de %Y"
+      json: "%e de %b de %Y"
+      medium: "%d de %b de %Y"
+      members: "%d de %b"
+      members_with_year: "%d de %b de %Y"
+      reddit: "%e de %b de %y"
+      short: "%-e de %b"
+      short_with_yy: "%-d de %b de '%y"
+      short_with_year: "%-e de %b de %Y"
+      stackexchange: "%e de %b de '%y"
