@@ -48,6 +48,7 @@ module IncomingWebhooks
     private
 
     def handle_checkout_session_completed(invoice)
+      # This is the one we're using to verify completion
       metadata = extract_metadata(invoice)
       return unless metadata["user_id"]
 
@@ -57,21 +58,28 @@ module IncomingWebhooks
 
       unless user.base_subscriber? # Don't add role if user is already a subscriber
         user.add_role("base_subscriber")
+        user.stripe_id_code = extract_customer(invoice)
+        user.touch
+        user.profile&.touch
         NotifyMailer.with(user: user).base_subscriber_role_email.deliver_now
       end
 
-      last_billboard_event = BillboardEvent
-        .where(user_id: user.id, category: %w[click signup]).where("created_at > ?", 1.hour.ago).last
-      return unless last_billboard_event
+      last_billboard_events = BillboardEvent
+        .where(user_id: user.id, category: "click")
+        .where("created_at > ?", 3.hours.ago).order("created_at DESC").limit(3)
+      return unless last_billboard_events.any?
 
-      BillboardEvent.create(user_id: user.id,
-                            category: "conversion",
-                            geolocation: last_billboard_event.geolocation,
-                            context_type: last_billboard_event.context_type,
-                            billboard_id: last_billboard_event.billboard_id)
+      last_billboard_events.each do |event|
+        BillboardEvent.create(user_id: user.id,
+                              category: "conversion",
+                              geolocation: event.geolocation,
+                              context_type: event.context_type,
+                              billboard_id: event.billboard_id)
+      end
     end
 
     def handle_subscription_created(subscription)
+      # This can likely be deleted.
       metadata = extract_metadata(subscription)
       return unless metadata["user_id"]
 
@@ -102,12 +110,20 @@ module IncomingWebhooks
       return unless user
 
       user.remove_role("base_subscriber")
+      user.touch
+      user.profile&.touch
     end
 
     def extract_metadata(obj)
       return obj.metadata if obj.respond_to?(:metadata)
       return obj["metadata"] if obj.is_a?(Hash) && obj.key?("metadata")
 
+      nil
+    end
+
+    def extract_customer(obj)
+      obj.customer if obj.respond_to?(:customer)
+    rescue StandardError
       nil
     end
   end

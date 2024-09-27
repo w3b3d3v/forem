@@ -8,7 +8,7 @@ function initializeBillboardVisibility() {
   var user = userData();
 
   billboards.forEach((ad) => {
-    if (user && !user.display_sponsors && ad.dataset['typeOf'] == 'external') {
+    if (user && !user.display_sponsors && ['external','partner'].includes(ad.dataset['typeOf'])) {
       ad.classList.add('hidden');
     } else {
       ad.classList.remove('hidden');
@@ -106,7 +106,7 @@ function observeBillboards() {
           if (entry.intersectionRatio >= 0.25) {
             setTimeout(function () {
               trackAdImpression(elem);
-            }, 1);
+            }, 200);
           }
         }
       });

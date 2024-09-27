@@ -45,6 +45,8 @@ class Billboard < ApplicationRecord
 
   HOME_FEED_PLACEMENTS = %w[feed_first feed_second feed_third].freeze
 
+  COLOR_HEX_REGEXP = /\A#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})\z/
+
   MAX_TAG_LIST_SIZE = 25
   POST_WIDTH = 775
   SIDEBAR_WIDTH = 350
@@ -72,6 +74,7 @@ class Billboard < ApplicationRecord
   validates :audience_segment_type,
             inclusion: { in: AudienceSegment.type_ofs },
             allow_blank: true
+  validates :color, format: COLOR_HEX_REGEXP, allow_blank: true
   validate :valid_audience_segment_match,
            :validate_in_house_hero_ads,
            :valid_manual_audience_segment,
@@ -81,6 +84,7 @@ class Billboard < ApplicationRecord
   before_save :process_markdown
   after_save :generate_billboard_name
   after_save :refresh_audience_segment, if: :should_refresh_audience_segment?
+  after_save :update_links_with_bb_param
 
   scope :approved_and_published, -> { where(approved: true, published: true) }
 
@@ -95,7 +99,8 @@ class Billboard < ApplicationRecord
   self.table_name = "display_ads"
 
   def self.for_display(area:, user_signed_in:, user_id: nil, article: nil, user_tags: nil,
-                       location: nil, cookies_allowed: false, page_id: nil, user_agent: nil)
+                       location: nil, cookies_allowed: false, page_id: nil, user_agent: nil,
+                       role_names: nil)
     permit_adjacent = article ? article.permit_adjacent_sponsors? : true
 
     billboards_for_display = Billboards::FilteredAdsQuery.call(
@@ -112,6 +117,7 @@ class Billboard < ApplicationRecord
       location: location,
       cookies_allowed: cookies_allowed,
       user_agent: user_agent,
+      role_names: role_names,
     )
 
     case rand(99) # output integer from 0-99
@@ -217,6 +223,10 @@ class Billboard < ApplicationRecord
     selected_number.to_i
   end
 
+  def type_of_display
+    type_of.gsub("external", "partner")
+  end
+
   def human_readable_placement_area
     ALLOWED_PLACEMENT_AREAS_HUMAN_READABLE[ALLOWED_PLACEMENT_AREAS.find_index(placement_area)]
   end
@@ -276,6 +286,60 @@ class Billboard < ApplicationRecord
     adjusted_input = input.is_a?(String) ? input.split(",") : input
     adjusted_input = adjusted_input&.filter_map { |value| value.presence&.to_i }
     write_attribute :preferred_article_ids, (adjusted_input || [])
+  end
+
+  def exclude_role_names=(input)
+    adjusted_input = input.is_a?(String) ? input.split(",") : input
+    write_attribute :exclude_role_names, (adjusted_input || [])
+  end
+
+  def target_role_names=(input)
+    adjusted_input = input.is_a?(String) ? input.split(",") : input
+    write_attribute :target_role_names, (adjusted_input || [])
+  end
+
+  def style_string
+    return "" if color.blank?
+
+    if placement_area.include?("fixed_")
+      "border-top: calc(9px + 0.5vw) solid #{color}"
+    else
+      "border: 5px solid #{color}"
+    end
+  end
+
+  def update_links_with_bb_param
+    # Parse the processed_html with Nokogiri
+    full_html = "<html><head></head><body>#{processed_html}</body></html>"
+    doc = Nokogiri::HTML(full_html)
+    # Iterate over all the <a> tags
+    doc.css("a").each do |link|
+      href = link["href"]
+      next unless href.present? && href.start_with?("http", "/")
+
+      uri = URI.parse(href)
+      existing_params = URI.decode_www_form(uri.query || "")
+      # Check if 'bb' parameter exists and update it or append if not exists
+      bb_param_index = existing_params.find_index { |param| param[0] == "bb" }
+      if bb_param_index
+        existing_params[bb_param_index][1] = id.to_s # Update existing 'bb' parameter
+      else
+        existing_params << ["bb", id.to_s] # Append new 'bb' parameter
+      end
+      uri.query = URI.encode_www_form(existing_params)
+      link["href"] = uri.to_s
+    end
+
+    # Extract and save only the inner HTML of the body
+    modified_html = doc.at("body").inner_html
+
+    modified_html.gsub!(/href="([^"]*)&amp;([^"]*)"/, 'href="\1&\2"')
+
+    # Early return if the new HTML is the same as the old one
+    return if modified_html == processed_html
+
+    # Update the processed_html column with the new HTML
+    update_column(:processed_html, modified_html)
   end
 
   private
