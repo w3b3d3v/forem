@@ -19,6 +19,7 @@ export const EditorActions = ({
   onConfigChange,
   submitting,
   previewLoading,
+  switchHelpContext,
 }) => {
   const isVersion1 = version === 'v1';
   const isVersion2 = version === 'v2';
@@ -63,12 +64,17 @@ export const EditorActions = ({
   }
 
   return (
-    <div className="crayons-article-form__footer">
+    <div
+      id="editor-actions"
+      className="crayons-article-form__footer"
+      onMouseEnter={switchHelpContext}
+    >
       <Button
         variant="primary"
         className="mr-2 whitespace-nowrap"
         onClick={onPublish}
         disabled={previewLoading}
+        onFocus={(event) => switchHelpContext(event, 'editor-actions')}
       >
         {saveButtonText}
       </Button>
@@ -78,6 +84,7 @@ export const EditorActions = ({
           className="mr-2 whitespace-nowrap"
           onClick={onSaveDraft}
           disabled={previewLoading}
+          onFocus={(event) => switchHelpContext(event, 'editor-actions')}
         >
           {locale('views.editor.actions.save')}{' '}
           <span className="hidden s:inline">
@@ -93,6 +100,7 @@ export const EditorActions = ({
           onConfigChange={onConfigChange}
           onSaveDraft={onSaveDraft}
           previewLoading={previewLoading}
+          onFocus={(event) => switchHelpContext(event, 'editor-actions')}
         />
       )}
 
@@ -101,6 +109,7 @@ export const EditorActions = ({
           onClick={onClearChanges}
           className="whitespace-nowrap fw-normal fs-s"
           disabled={previewLoading}
+          onFocus={(event) => switchHelpContext(event, 'editor-actions')}
         >
           {locale('views.editor.actions.revert')}{' '}
           <span className="hidden s:inline">

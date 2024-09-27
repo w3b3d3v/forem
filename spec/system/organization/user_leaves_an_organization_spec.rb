@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe "User leaves an organization", type: :system do
+RSpec.describe "User leaves an organization" do
   let!(:org_user) { create(:user, :org_member) }
   let(:organization) { org_user.organizations.first }
 
@@ -10,7 +10,7 @@ RSpec.describe "User leaves an organization", type: :system do
   end
 
   context "when user visits member organization settings" do
-    it "shows the leave organization button", js: true do
+    it "shows the leave organization button", :js do
       expect(page).to have_button("Leave Organization")
     end
   end

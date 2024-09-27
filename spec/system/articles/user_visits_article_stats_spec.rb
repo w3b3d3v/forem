@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe "Viewing an article stats", type: :system, js: true do
+RSpec.describe "Viewing an article stats", :js do
   let(:user) { create(:user) }
   let(:article) { create(:article, user: user) }
 
@@ -10,6 +10,6 @@ RSpec.describe "Viewing an article stats", type: :system, js: true do
     visit path
 
     expect(page).to have_current_path(path)
-    expect(page).to have_selector(".summary-stats")
+    expect(page).to have_css(".summary-stats")
   end
 end

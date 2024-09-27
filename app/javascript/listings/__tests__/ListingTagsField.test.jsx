@@ -1,12 +1,22 @@
 import fetch from 'jest-fetch-mock';
 import { h } from 'preact';
 import { render, waitFor } from '@testing-library/preact';
-import userEvent from '@testing-library/user-event';
+import { userEvent } from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import { ListingTagsField } from '../components/ListingTagsField';
 import '@testing-library/jest-dom';
 
 fetch.enableMocks();
+
+// Mock Algolia
+jest.mock('algoliasearch/lite', () => {
+  const searchClient = {
+    initIndex: jest.fn(() => ({
+      search: jest.fn().mockResolvedValue({ hits: [] })
+    }))
+  };
+  return jest.fn(() => searchClient);
+});
 
 let renderResult;
 const csrfToken = 'this-is-a-csrf-token';

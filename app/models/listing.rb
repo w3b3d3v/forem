@@ -2,7 +2,6 @@ class Listing < ApplicationRecord
   # We used to use both "classified listing" and "listing" throughout the app.
   # We standardized on the latter, but keeping the table name was easier.
   self.table_name = "classified_listings"
-  self.ignored_columns = %w[contact_via_connect].freeze
 
   include PgSearch::Model
 
@@ -120,7 +119,7 @@ class Listing < ApplicationRecord
     temp_tags = tag_list
     self.tag_list = [] # overwrite any existing tag with those from the front matter
     tag_list.add(temp_tags, parser: ActsAsTaggableOn::TagParser)
-    self.body_markdown = body_markdown.to_s.gsub(/\r\n/, "\n")
+    self.body_markdown = body_markdown.to_s.gsub("\r\n", "\n")
   end
 
   def restrict_markdown_input

@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe Tag, type: :model do
+RSpec.describe Tag do
   let(:tag) { build(:tag) }
 
   describe "#class_name" do
@@ -212,6 +212,48 @@ RSpec.describe Tag, type: :model do
     end
   end
 
+  describe "followed_by and antifollowed_by" do
+    let(:user) { create(:user) }
+    let(:first_followed_tag) { create(:tag, name: "tagone") }
+    let(:antifollowed_tag) { create(:tag, name: "tagtwo") }
+    let(:second_followed_tag) { create(:tag, name: "tagthree") }
+    let(:other_followed_tag) { create(:tag, name: "tagfour") }
+    let(:other) { create(:user) }
+
+    before do
+      first_followed = user.follow(first_followed_tag)
+      first_followed.update explicit_points: 5
+
+      second_followed = user.follow(second_followed_tag)
+      second_followed.update explicit_points: 0
+
+      antifollowed = user.follow(antifollowed_tag)
+      antifollowed.update(explicit_points: -5, implicit_points: 6)
+
+      other.follow(other_followed_tag)
+    end
+
+    it "works as expected" do
+      results = described_class.followed_by(user)
+      expect(results).to contain_exactly(first_followed_tag, second_followed_tag)
+
+      antiresults = described_class.antifollowed_by(user)
+      expect(antiresults).to contain_exactly(antifollowed_tag)
+
+      other_results = described_class.followed_by(other)
+      expect(other_results).to contain_exactly(other_followed_tag)
+    end
+
+    it "returns tags in order of follow points" do
+      user.follow(other_followed_tag).update(explicit_points: 4)
+      Follow.where(followable_id: second_followed_tag.id).first.update(explicit_points: 2)
+      results = described_class.followed_by(user)
+
+      expected_order = [first_followed_tag, other_followed_tag, second_followed_tag]
+      expect(results.to_a).to eq(expected_order)
+    end
+  end
+
   # [@jeremyf] The implementation details of #accessible_name are contingent on a feature flag that
   #            we're using for this refactoring.  Once we remove the flag, please adjust the specs
   #            accordingly.
@@ -245,6 +287,15 @@ RSpec.describe Tag, type: :model do
       it "equals the #name" do
         expect(accessible_name).to eq name
       end
+    end
+  end
+
+  context "when indexing with Algolia", :algolia do
+    it "indexes on create" do
+      allow(AlgoliaSearch::SearchIndexWorker).to receive(:perform_async)
+      create(:tag)
+      expect(AlgoliaSearch::SearchIndexWorker).to have_received(:perform_async).with("Tag", kind_of(Integer),
+                                                                                     false).once
     end
   end
 end

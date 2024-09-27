@@ -5,7 +5,7 @@ RSpec.describe "Authenticating with a password" do
     allow(ForemInstance).to receive(:smtp_enabled?).and_return(true)
     fill_in "Email", with: email
     fill_in "Password", with: password
-    click_button "Continue"
+    click_button "Log in"
   end
 
   let(:password) { "p4assw0rd" }
@@ -51,7 +51,7 @@ RSpec.describe "Authenticating with a password" do
       click_on("Continue with GitHub", match: :first)
 
       expect(page).to have_current_path("/?signin=true")
-      expect(page).not_to have_text("Your account is locked.")
+      expect(page).to have_no_text("Your account is locked.")
     end
   end
 

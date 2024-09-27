@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe "User visits articles by tag", type: :system do
+RSpec.describe "User visits articles by tag" do
   let(:js_tag) { create(:tag, name: "javascript") }
   let(:iot_tag) { create(:tag, name: "IoT") }
   let!(:func_tag) { create(:tag, name: "functional") }
@@ -20,29 +20,29 @@ RSpec.describe "User visits articles by tag", type: :system do
         visit "/t/javascript"
       end
 
-      it "shows the header", js: true do
+      it "shows the header", :js do
         within("h1.crayons-title") { expect(page).to have_text("javascript") }
       end
 
-      it "shows the follow button", js: true do
+      it "shows the follow button", :js do
         within("header.spec__tag-header") { expect(page).to have_button(I18n.t("core.follow")) }
       end
 
       # Regression test for https://github.com/forem/forem/pull/12724
-      it "does not display a comment count of 0", js: true do
+      it "does not display a comment count of 0", :js do
         expect(page).to have_text("Add Comment")
-        expect(page).not_to have_text("0 #{I18n.t('core.comment').downcase}s")
+        expect(page).to have_no_text("0 #{I18n.t('core.comment').downcase}s")
       end
 
       it "shows correct articles count" do
-        expect(page).to have_selector(".crayons-story", count: 2)
+        expect(page).to have_css(".crayons-story", count: 2)
       end
 
       it "shows the correct articles" do
         within("#main-content") do
           expect(page).to have_text(article.title)
           expect(page).to have_text(article3.title)
-          expect(page).not_to have_text(article2.title)
+          expect(page).to have_no_text(article2.title)
         end
       end
     end
@@ -64,7 +64,7 @@ RSpec.describe "User visits articles by tag", type: :system do
       visit "/t/functional"
     end
 
-    it "shows the following button", js: true do
+    it "shows the following button", :js do
       wait_for_javascript
 
       within("header.spec__tag-header") { expect(page).to have_button(I18n.t("core.following")) }

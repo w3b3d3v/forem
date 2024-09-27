@@ -2,34 +2,19 @@
   global initializeLocalStorageRender, initializeBodyData,
   initializeAllTagEditButtons, initializeUserFollowButts,
   initializeCommentsPage,
-  initializeArticleDate, initializeArticleReactions, initNotifications,
-  initializeSettings, initializeRuntimeBanner,
-  initializeTimeFixer, initializeDashboardSort,
-  initializeArchivedPostFilter, initializeCreditsPage,
-  initializeProfileInfoToggle, initializeDrawerSliders,
-  initializeProfileBadgesToggle, initializeHeroBannerClose,
-  initializeOnboardingTaskCard, initScrolling, nextPage:writable,
+  initializeRuntimeBanner,
+  initializeCreditsPage,
+  initializeOnboardingTaskCard,
+  initScrolling, nextPage:writable,
   fetching:writable, done:writable, initializePaymentPointers,
-  initializeBroadcast, initializeDateHelpers
+  initializeBroadcast
 */
 
 function callInitializers() {
   initializePaymentPointers();
   initializeCommentsPage();
-  initializeArticleDate();
-  initializeArticleReactions();
-  initNotifications();
-  initializeSettings();
-  initializeTimeFixer();
-  initializeDashboardSort();
-  initializeArchivedPostFilter();
   initializeCreditsPage();
-  initializeProfileInfoToggle();
-  initializeProfileBadgesToggle();
-  initializeDrawerSliders();
-  initializeHeroBannerClose();
   initializeOnboardingTaskCard();
-  initializeDateHelpers();
 }
 
 function initializePage() {
@@ -45,7 +30,7 @@ function initializePage() {
       }
       initializeBroadcast();
       initializeReadingListIcons();
-      initializeDisplayAdVisibility();
+      initializeBillboardVisibility();
       if (document.getElementById('sidebar-additional')) {
         document.getElementById('sidebar-additional').classList.add('showing');
       }
@@ -53,10 +38,6 @@ function initializePage() {
   }, 1);
 
   callInitializers();
-
-  function freezeScrolling(event) {
-    event.preventDefault();
-  }
 
   nextPage = 0;
   fetching = false;

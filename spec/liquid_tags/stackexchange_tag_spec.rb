@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe StackexchangeTag, type: :liquid_tag, vcr: true do
+RSpec.describe StackexchangeTag, :vcr, type: :liquid_tag do
   describe "#id" do
     let(:valid_id) { "57496168" }
     let(:exchange_id) { "1163633" }

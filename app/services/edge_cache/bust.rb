@@ -1,11 +1,11 @@
 module EdgeCache
   class Bust
-    def initialize
-      @provider_class = determine_provider_class
-    end
-
     def self.call(*paths)
       new.call(*paths)
+    end
+
+    def initialize
+      @provider_class = determine_provider_class
     end
 
     def call(paths)
@@ -43,7 +43,7 @@ module EdgeCache
       http = Net::HTTP.new(uri.host, uri.port)
       response = http.get(uri.request_uri)
 
-      return true if response.is_a?(Net::HTTPSuccess)
+      true if response.is_a?(Net::HTTPSuccess)
     rescue StandardError => e
       # If we can't connect to OpenResty, alert ourselves that it is
       # unavailable and return false.

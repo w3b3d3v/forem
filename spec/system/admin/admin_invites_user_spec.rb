@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe "Admin invites user", type: :system do
+RSpec.describe "Admin invites user" do
   let(:admin) { create(:user, :super_admin) }
 
   before do
@@ -34,11 +34,11 @@ RSpec.describe "Admin invites user", type: :system do
     end
 
     it "does not contain any for fields" do
-      expect(page).not_to have_field "Email"
+      expect(page).to have_no_field "Email"
     end
 
     it "does not contain any submit buttons" do
-      expect(page).not_to have_button "Invite User"
+      expect(page).to have_no_button "Invite User"
     end
   end
 

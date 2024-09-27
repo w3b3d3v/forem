@@ -1,14 +1,20 @@
+/*eslint-disable prefer-rest-params*/
+/* global isTouchDevice */
+
 function initializeBaseTracking() {
+  showCookieConsentBanner();
   trackGoogleAnalytics3();
   trackGoogleAnalytics4();
   trackCustomImpressions();
+  trackEmailClicks();
 }
-  
+
+// Google Anlytics 3 is deprecated, and mostly not supported, but some sites may still be using it for now.
 function trackGoogleAnalytics3() {
   let wait = 0;
   let addedGA = false;
   const gaTrackingCode = document.body.dataset.gaTracking;
-  if (gaTrackingCode) {
+  if (gaTrackingCode && localStorage.getItem('cookie_status') === 'allowed') {
     const waitingOnGA = setInterval(() => {
       if (!addedGA) {
         (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -30,6 +36,8 @@ function trackGoogleAnalytics3() {
       }
     }, 25);
     eventListening();
+  } else if (gaTrackingCode) {
+    fallbackActivityRecording();
   }
 }
 
@@ -57,15 +65,17 @@ function trackGoogleAnalytics4() {
         window['gtag'] = window['gtag'] || function () {
           window.dataLayer.push(arguments)
         }
-
+        const consent = localStorage.getItem('cookie_status') === 'allowed' ? 'granted' : 'denied';
         gtag('js', new Date());
         gtag('config', ga4MeasurementCode, { 'anonymize_ip': true });
+        gtag('consent', 'default', {
+          'ad_storage': consent,
+          'analytics_storage': consent
+        });
         clearInterval(waitingOnGA4);
       }
       if (wait > 85) {
         clearInterval(waitingOnGA4);
-        //The gem we're using server-side (Staccato) is not yet compatible with the Google Analytics 4 tracking code.
-        //More details: https://github.com/tpitale/staccato/issues/97 %>
         fallbackActivityRecording();
       }
     }, 25);
@@ -89,8 +99,8 @@ function fallbackActivityRecording() {
     user_language: navigator.language,
     referrer: document.referrer,
     user_agent: navigator.userAgent,
-    viewport_size: `${h  }x${  w}`,
-    screen_resolution: `${screenH  }x${  screenW}`,
+    viewport_size: `${h}x${w}`,
+    screen_resolution: `${screenH}x${screenW}`,
     document_title: document.title,
     document_encoding: document.characterSet,
     document_path: location.pathname + location.search,
@@ -176,6 +186,116 @@ function trackCustomImpressions() {
   }, 1800)
 }
 
+function trackEmailClicks() {
+  const urlParams = new URLSearchParams(window.location.search);
+
+    if (urlParams.get('ahoy_click') === 'true' && urlParams.get('t') && urlParams.get('s') && urlParams.get('u')){
+      const dataBody = {
+        t: urlParams.get('t'),
+        c: urlParams.get('c'),
+        u: decodeURIComponent(urlParams.get('u')),
+        s: urlParams.get('s'),
+        bb: urlParams.get('bb'),
+      };
+      window.fetch('/ahoy/email_clicks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(dataBody),
+        credentials: 'same-origin'
+      });
+      // Remove t,c,u,s params and ahoy_click param from url without modifying the history
+      urlParams.delete('t');
+      urlParams.delete('c');
+      urlParams.delete('u');
+      urlParams.delete('s');
+      urlParams.delete('ahoy_click');
+      urlParams.delete('bb');
+      const newUrl = `${window.location.pathname  }?${  urlParams.toString()}`;
+      window.history.replaceState({}, null, newUrl);
+    }
+}
+
+function showCookieConsentBanner() {
+  // if current url includes ?cookietest=true
+  if (shouldShowCookieBanner()) {
+    // show modal with cookie consent
+    const cookieDiv = document.getElementById('cookie-consent');
+
+    if (cookieDiv && localStorage.getItem('cookie_status') !== 'allowed' && localStorage.getItem('cookie_status') !== 'dismissed') {
+      cookieDiv.innerHTML = `
+        <div class="cookie-consent-modal">
+          <div class="cookie-consent-modal__content">
+            <p>
+              <strong>Some content on our site requires cookies for personalization.</strong>
+            </p>
+            <p>
+              Read our full <a href="/privacy">privacy policy</a> to learn more.
+            </p>
+            <div class="cookie-consent-modal__actions">
+              <button class="c-btn c-btn--secondary" id="cookie-dismiss">
+                Dismiss
+              </button>
+              <button class="c-btn c-btn--primary" id="cookie-accept">
+                Accept Cookies
+              </button>
+            </div
+          </div>
+        </div>
+      `;
+
+      document.getElementById('cookie-accept').onclick = (() => {
+        localStorage.setItem('cookie_status', 'allowed');
+        cookieDiv.style.display = 'none';
+        if (window.gtag) {
+          gtag('consent', 'update', {
+            'ad_storage': 'granted',
+            'analytics_storage': 'granted'
+          });
+        }
+      });
+
+      document.getElementById('cookie-dismiss').onclick = (() => {
+        localStorage.setItem('cookie_status', 'dismissed');
+        cookieDiv.style.display = 'none';
+      });
+    }
+  }
+}
+
+function shouldShowCookieBanner() {
+  const { userStatus, cookieBannerUserContext, cookieBannerPlatformContext } = document.body.dataset;
+  function determineActualPlatformContext() {
+    if (navigator.userAgent.includes('DEV-Native')) {
+      return 'mobile_app'
+    } else if (isTouchDevice()) {
+      return 'mobile_web'
+    }
+    return 'desktop_web'
+  }
+
+  // Determine the actual platform context
+  const actualPlatformContext = determineActualPlatformContext();
+
+  // Check if either user or platform context is set to 'off'
+  if (cookieBannerUserContext === 'off' || cookieBannerPlatformContext === 'off') {
+    return false;
+  }
+
+  // Check based on user status
+  const showForUserContext = (userStatus === 'logged-in' && cookieBannerUserContext === 'all') ||
+                             (userStatus !== 'logged-in' && cookieBannerUserContext !== 'off');
+
+  // Check based on platform context
+  const showForPlatformContext = (cookieBannerPlatformContext === 'all') ||
+                                 (cookieBannerPlatformContext === 'all_web' && ['desktop_web', 'mobile_web'].includes(actualPlatformContext)) ||
+                                 (cookieBannerPlatformContext === actualPlatformContext);
+
+  // Return true if both user context and platform context conditions are met
+  return showForUserContext && showForPlatformContext;
+}
+
 function trackPageView(dataBody, csrfToken) {
   window.fetch('/page_views', {
     method: 'POST',
@@ -199,4 +319,7 @@ function trackFifteenSecondsOnPage(articleId, csrfToken) {
   }).catch((error) => console.error(error))
 }
 
+window.InstantClick.on('change', () => {
+  initializeBaseTracking();
+});
 initializeBaseTracking();

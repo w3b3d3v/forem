@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe WikipediaTag, type: :liquid_tag, vcr: true do
+RSpec.describe WikipediaTag, :vcr, type: :liquid_tag do
   describe "#id" do
     let(:valid_url) { "https://en.wikipedia.org/wiki/Wikipedia" }
     let(:valid_section_url) { "https://en.wikipedia.org/wiki/Wikipedia#Diversity" }

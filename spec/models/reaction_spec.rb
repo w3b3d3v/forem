@@ -116,6 +116,11 @@ RSpec.describe Reaction do
       expect(reaction.skip_notification_for?(user)).to be(true)
     end
 
+    it "is true when the reaction is a bookmark" do
+      reaction.category = "readinglist"
+      expect(reaction.skip_notification_for?(user)).to be(true)
+    end
+
     context "when reactable is a user" do
       let(:user) { create(:user) }
       let(:reaction) { build(:reaction, reactable: user, user: nil) }
@@ -139,10 +144,13 @@ RSpec.describe Reaction do
 
       expected_result = [
         { category: "like", count: 1 },
-        { category: "readinglist", count: 0 },
         { category: "unicorn", count: 1 },
+        { category: "exploding_head", count: 0 },
+        { category: "fire", count: 0 },
+        { category: "raised_hands", count: 0 },
+        { category: "readinglist", count: 0 },
       ]
-      expect(described_class.count_for_article(article.id)).to contain_exactly(*expected_result)
+      expect(described_class.count_for_article(article.id)).to match_array(expected_result)
     end
   end
 
@@ -322,6 +330,46 @@ RSpec.describe Reaction do
 
     it "returns un-archived reactions on articles" do
       expect(described_class.readinglist_for_user(user).pluck(:reactable_id)).to contain_exactly(article.id)
+    end
+  end
+
+  describe ".live_reactable" do
+    let(:moderator) { create(:user, :trusted) }
+
+    it "returns reactions on articles where article is published" do
+      article = create(:article, published: true)
+      reaction = create(:vomit_reaction, user: moderator, reactable: article)
+
+      expect(described_class.live_reactable.to_a).to eq([reaction])
+    end
+
+    it "does not return reaction on articles where not published" do
+      article = create(:article)
+      create(:vomit_reaction, user: moderator, reactable: article)
+      article.update_column(:published, false)
+
+      expect(described_class.live_reactable.to_a).to eq([])
+    end
+
+    it "returns reactions on comments" do
+      comment = create(:comment)
+      reaction = create(:vomit_reaction, user: moderator, reactable: comment)
+
+      expect(described_class.live_reactable).to eq([reaction])
+    end
+
+    it "returns reactions to users" do
+      user = create(:user)
+      reaction = create(:vomit_reaction, user: moderator, reactable: user)
+
+      expect(described_class.live_reactable.to_a).to eq([reaction])
+    end
+
+    it "does not return reactions to users who are deemed spam already" do
+      user = create(:user, username: "spam_400")
+      create(:vomit_reaction, user: moderator, reactable: user)
+
+      expect(described_class.live_reactable.to_a).to eq([])
     end
   end
 end

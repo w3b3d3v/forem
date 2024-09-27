@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe "Feedback report", type: :system do
+RSpec.describe "Feedback report" do
   let(:user) { create(:user) }
   let(:message) { Faker::Lorem.paragraph }
   let(:url) { Faker::Lorem.sentence }
@@ -10,7 +10,7 @@ RSpec.describe "Feedback report", type: :system do
       sign_in user
     end
 
-    it "feedback message should increase by one", js: true do
+    it "feedback message should increase by one", :js do
       expect do
         post "/feedback_messages", params: {
           feedback_message: {
@@ -36,7 +36,7 @@ RSpec.describe "Feedback report", type: :system do
         .and_return(true)
     end
 
-    it "displays a rate limit warning", :flaky, js: true do
+    it "displays a rate limit warning", :flaky, :js do
       visit report_abuse_path
       choose("Other")
       fill_in "feedback_message_message", with: message

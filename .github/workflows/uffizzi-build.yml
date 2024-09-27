@@ -1,4 +1,5 @@
 name: Build PR Image
+
 on:
   pull_request:
     types: [opened, synchronize, reopened, closed]
@@ -17,17 +18,16 @@ jobs:
         uses: docker/setup-buildx-action@v2
       - name: Generate UUID image name
         id: uuid
-        run: echo "UUID_TAG_APP=$(uuidgen)" >> $GITHUB_ENV
+        run: echo "UUID_TAG_APP=forem-$(uuidgen --time)" >> $GITHUB_ENV
       - name: Docker metadata
         id: meta
         uses: docker/metadata-action@v4
         with:
           images: registry.uffizzi.com/${{ env.UUID_TAG_APP }}
-          tags: type=raw,value=60d
-      - uses: actions/checkout@master
+          tags: type=raw,value=30d
       - name: Create the .env file
         run: |
-          cp .env.test .env
+          cp .env_sample .env
       - name: Build and Push Image to registry.uffizzi.com ephemeral registry
         uses: docker/build-push-action@v2
         with:
@@ -35,9 +35,24 @@ jobs:
           context: .
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          file: ./uffizzi/Dockerfile
+          file: ./Dockerfile
+          target: uffizzi
           cache-from: type=gha
-          cache-to: type=gha,mode=max          
+          cache-to: type=gha,mode=min
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Push Image to Docker Hub
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          context: .
+          tags: ${{ secrets.DOCKER_USERNAME }}/web3dev-forem:development
+          labels: ${{ steps.meta.outputs.labels }}
 
   render-compose-file:
     name: Render Docker Compose File
@@ -63,12 +78,6 @@ jobs:
         with:
           name: preview-spec
           path: docker-compose.rendered.yml
-          retention-days: 2
-      - name: Upload PR Event as Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: preview-spec
-          path: ${{ github.event_path }}
           retention-days: 2
 
   delete-preview:

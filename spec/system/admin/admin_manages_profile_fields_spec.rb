@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe "Admin manages profile fields", type: :system do
+RSpec.describe "Admin manages profile fields" do
   let(:admin) { create(:user, :super_admin) }
   let!(:profile_field_group) { create(:profile_field_group, name: "Delete Me") }
   let(:label) { "Delete Me Too" }
@@ -21,7 +21,7 @@ RSpec.describe "Admin manages profile fields", type: :system do
 
   it "adds a profile field" do
     group_name = profile_field_group.name.gsub(/\s+/, "_")
-    within(find("#profile-field-group-#{profile_field_group.id}")) do
+    within("#profile-field-group-#{profile_field_group.id}") do
       click_button("Add Field")
       input = find("#add-#{group_name}-profile-field-modal #profile_field_label")
       input.set("Example field")

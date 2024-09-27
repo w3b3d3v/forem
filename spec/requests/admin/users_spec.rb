@@ -212,6 +212,71 @@ RSpec.describe "/admin/member_manager/users" do
     end
   end
 
+  describe "POST /admin/member_manager/users/:id/send_email_confirmation" do
+    let(:user) { create(:user) }
+    let(:message_delivery) { instance_double(ActionMailer::MessageDelivery) }
+
+    before do
+      allow(ForemInstance).to receive(:smtp_enabled?).and_return(true)
+    end
+
+    context "when interacting via a browser" do
+      it "returns not found for non-existing users" do
+        expect do
+          post send_email_confirmation_admin_user_path(9999)
+        end.to raise_error(ActiveRecord::RecordNotFound)
+      end
+
+      it "fails sending the confirmation email if an error occurs" do
+        allow(User).to receive(:find).with(user.id.to_s).and_return(user)
+        allow(user).to receive(:send_confirmation_instructions).and_return(false)
+
+        post send_email_confirmation_admin_user_path(user)
+
+        expect(response).to redirect_to(admin_user_path(user))
+        expect(flash[:danger]).to include("failed")
+      end
+
+      it "sends the confirmation email successfully" do
+        allow(User).to receive(:find).with(user.id.to_s).and_return(user)
+        allow(user).to receive(:send_confirmation_instructions).and_return(true)
+
+        post send_email_confirmation_admin_user_path(user)
+
+        expect(response).to redirect_to(admin_user_path(user))
+        expect(flash[:success]).to include("sent")
+      end
+    end
+
+    context "when interacting via AJAX" do
+      it "returns not found for non-existing users" do
+        expect do
+          post send_email_confirmation_admin_user_path(9999), xhr: true
+        end.to raise_error(ActiveRecord::RecordNotFound)
+      end
+
+      it "fails sending the confirmation email if an error occurs" do
+        allow(User).to receive(:find).with(user.id.to_s).and_return(user)
+        allow(user).to receive(:send_confirmation_instructions).and_return(false)
+
+        post send_email_confirmation_admin_user_path(user), xhr: true
+
+        expect(response).to have_http_status(:service_unavailable)
+        expect(response.parsed_body["error"]).to include("failed")
+      end
+
+      it "sends the confirmation email successfully" do
+        allow(User).to receive(:find).with(user.id.to_s).and_return(user)
+        allow(user).to receive(:send_confirmation_instructions).and_return(true)
+
+        post send_email_confirmation_admin_user_path(user), xhr: true
+
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body["result"]).to include("sent")
+      end
+    end
+  end
+
   describe "POST /admin/member_manager/users/:id/verify_email_ownership" do
     let(:mailer) { double }
     let(:message_delivery) { double }
@@ -346,8 +411,8 @@ RSpec.describe "/admin/member_manager/users" do
 
     it "unpublishes users comments and posts" do
       # User's articles are published and comments exist
-      expect(target_articles.map(&:published?)).to match_array([true, true, true])
-      expect(target_comments.map(&:deleted)).to match_array([false, false, false])
+      expect(target_articles.map(&:published?)).to contain_exactly(true, true, true)
+      expect(target_comments.map(&:deleted)).to contain_exactly(false, false, false)
 
       sidekiq_perform_enqueued_jobs(only: Moderator::UnpublishAllArticlesWorker) do
         post unpublish_all_articles_admin_user_path(target_user.id)
@@ -355,8 +420,8 @@ RSpec.describe "/admin/member_manager/users" do
 
       # Ensure article's aren't published and comments deleted
       # (with boolean attribute so they can be reverted if needed)
-      expect(target_articles.map(&:reload).map(&:published?)).to match_array([false, false, false])
-      expect(target_comments.map(&:reload).map(&:deleted)).to match_array([true, true, true])
+      expect(target_articles.map { |a| a.reload.published? }).to contain_exactly(false, false, false)
+      expect(target_comments.map { |c| c.reload.deleted? }).to contain_exactly(true, true, true)
     end
 
     it "creates a log record" do
@@ -409,7 +474,7 @@ RSpec.describe "/admin/member_manager/users" do
 
       delete remove_identity_admin_user_path(user.id), params: { user: { identity_id: identity.id } }
 
-      expect(user.public_send("#{identity.provider}_username")).to be_nil
+      expect(user.public_send(:"#{identity.provider}_username")).to be_nil
     end
 
     it "does not remove GitHub repositories if the removed identity is not GitHub" do

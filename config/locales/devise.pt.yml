@@ -1,4 +1,3 @@
----
 pt:
   devise:
     confirmations:
@@ -8,10 +7,10 @@ pt:
     failure:
       already_authenticated: Você já está logado.
       inactive: Sua conta ainda não está ativa.
-      invalid: Inválido %{authentication_keys} ou senha.
+      invalid: Não foi possível fazer login.
       last_attempt: Você tem mais uma tentativa antes que sua conta seja bloqueada.
-      locked: Sua conta está bloqueada.
-      not_found_in_database: Inválido %{authentication_keys} ou senha.
+      locked: Não foi possível fazer login.
+      not_found_in_database: Não foi possível fazer login.
       timeout: Sua sessão expirou. Por favor, faça login novamente para continuar.
       unauthenticated: Você precisa entrar ou se inscrever antes de continuar.
       unconfirmed: Você precisa confirmar seu e-mail antes de continuar.
@@ -23,42 +22,63 @@ pt:
       password_change:
         subject: Senha alterada
       reset_password_instructions:
-        subject: Redefinir as instruções da senha.
+        subject: Instruções para redefinir a senha
       unlock_instructions:
-        subject: Desbloquear instruções
+        subject: Instruções de desbloqueio
     omniauth_callbacks:
-      failure: Você não pode autenticar de %{kind} porque "%{reason}".
+      failure: Não foi possível autenticar através de %{kind} porque "%{reason}".
       success: Autenticado com sucesso pela conta %{kind}.
     passwords:
-      no_token: Você não pode acessar esta página sem senha redefinida por e-mail. Se você não entrar com um e-mail de redefinição de senha, por favor, certifique-se de usar a URL completa fornecida.
+      no_token: Você não pode acessar esta página sem um e-mail de redefinição de senha. Se você veio de um e-mail de redefinição de senha, certifique-se de ter usado a URL completa fornecida.
+      reset_instructions_sent: As instruções para redefinir sua senha foram enviadas.
+      reset_password:
+        email_placeholder: voce@email.com
+        forgot_password: Esqueceu sua senha?
+        forgot_password_description: Insira o endereço de e-mail associado à sua conta e enviaremos um link para redefinir sua senha.
+        go_back: Voltar
+        send_reset_link_button: Enviar link de redefinição
       send_instructions: Você receberá um e-mail com instruções sobre como redefinir sua senha em alguns minutos.
       send_paranoid_instructions: Se o seu e-mail existir em nosso banco de dados, você receberá um link de recuperação de senha no seu e-mail em poucos minutos.
       updated: Sua senha foi alterada com sucesso. Você está conectado agora.
       updated_not_active: Sua senha foi alterada com sucesso.
     registrations:
-      destroyed: Bye! Sua conta foi cancelada com sucesso. Esperamos te ver novamente em breve.
-      signed_up: Bem vindo! Você se inscreveu com sucesso.
+      agreement:
+        sign_in_html: Ao fazer login, você concorda com nossa <a href="%{privacy_path}">política de privacidade</a>, <a href="%{terms_path}">termos de uso</a> e <a href="%{code_of_conduct_path}">código de conduta</a>.
+        sign_up_html: Ao se inscrever, você concorda com nossa <a href="%{privacy_path}">política de privacidade</a>, <a href="%{terms_path}">termos de uso</a> e <a href="%{code_of_conduct_path}">código de conduta</a>.
+      already_have_an_account_html: Já tem uma conta? <a href="%{sign_up_path}">Entrar</a>.
+      create_account_html: Novo no %{community_name}? <a href="%{sign_up_path}">Criar conta</a>.
+      destroyed: Adeus! Sua conta foi cancelada com sucesso. Esperamos vê-lo novamente em breve.
+      errors:
+        bummer: Desculpe o transtorno...
+        mobile_app_no_new_account_html: Infelizmente, não suportamos a criação de novas contas no nosso aplicativo móvel no momento. Se você deseja criar uma nova conta para ingressar no %{community_name}, faça isso na web em <a href="%{path}">%{path}></a>.
+      invite_only_disclaimer_html: Como esta é uma comunidade apenas para convidados, você não pode ingressar sem um convite. Se desejar solicitar um convite, entre em contato com o administrador da comunidade em %{contact_link}.
+      or: OU
+      signed_up: Bem-vindo! Você se inscreveu com sucesso.
       signed_up_but_inactive: Você se inscreveu com sucesso. No entanto, não podemos fazer seu login porque sua conta ainda não está ativada.
       signed_up_but_locked: Você se inscreveu com sucesso. No entanto, não podemos fazer seu login porque sua conta está bloqueada.
       signed_up_but_unconfirmed: Uma mensagem com um link de confirmação foi enviada ao seu e-mail. Por favor, siga o link para ativar sua conta.
-      update_needs_confirmation: Você atualizou sua conta com sucesso, mas precisamos verificar seu novo e-mail. Siga o link de confirmação para confirmar seu novo e-mail.
+      title:
+        invite_only_commuty: "%{community_name} é apenas para convidados."
+        join_community: "Junte-se ao %{community_name}"
+        welcome_back_community: "Bem-vindo de volta ao %{community_name}"
+      update_needs_confirmation: Você atualizou sua conta com sucesso, mas precisamos verificar seu novo e-mail. Por favor, verifique seu e-mail e siga o link de confirmação para confirmar seu novo endereço de e-mail.
       updated: Sua conta foi atualizada com sucesso.
       updated_but_not_signed_in: Sua conta foi atualizada com sucesso, mas como sua senha foi alterada, você precisa fazer login novamente.
     sessions:
-      already_signed_out: Logoff feito com sucesso.
-      signed_in: Assinado com sucesso.
-      signed_out: Logoff feito com sucesso.
+      already_signed_out: Logout feito com sucesso.
+      signed_in: Login realizado com sucesso.
+      signed_out: Logout feito com sucesso.
     unlocks:
       send_instructions: Você receberá um email com instruções sobre como desbloquear sua conta em alguns minutos.
       send_paranoid_instructions: Se sua conta existe, você receberá um email com instruções sobre como desbloqueá-la em alguns minutos.
-      unlocked: Sua conta foi desbloqueada com sucesso. Por favor, faça o login para continuar.
+      unlocked: Sua conta foi desbloqueada com sucesso. Por favor, faça login para continuar.
   errors:
     messages:
-      already_confirmed: já foi confirmado, por favor tente fazer o login
+      already_confirmed: já foi confirmado, por favor tente fazer login
       confirmation_period_expired: precisa ser confirmado em %{period}, por favor, solicite um novo
       expired: expirou, por favor solicite um novo
       not_found: não encontrado
       not_locked: não foi bloqueado
       not_saved:
-        one: '1 erro não permitiu que esse %{resource} fosse salvo:'
-        other: "%{count} erros não permitiram que esse %{resource} fosse salvo:"
+        one: "1 erro não permitiu que este %{resource} fosse salvo:"
+        other: "%{count} erros não permitiram que este %{resource} fosse salvo:"

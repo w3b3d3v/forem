@@ -1,17 +1,14 @@
 require "rails_helper"
 
-RSpec.describe "Editing with an editor", type: :system, js: true do
+RSpec.describe "Editing with an editor", :js do
   let(:template) { file_fixture("article_published.txt").read }
   let(:user) { create(:user) }
   let(:article) { create(:article, user: user, body_markdown: template) }
   let(:svg_image) { file_fixture("300x100.svg").read }
 
   before do
-    allow(Settings::General).to receive(:main_social_image).and_return("https://dummyimage.com/800x600.jpg")
-    allow(Settings::General).to receive(:logo_png).and_return("https://dummyimage.com/800x600.png")
-    allow(Settings::General).to receive(:mascot_image_url).and_return("https://dummyimage.com/800x600.jpg")
-    allow(Settings::General).to receive(:suggested_tags).and_return("coding, beginners")
-    allow(Settings::General).to receive(:suggested_users).and_return("romagueramica")
+    allow(Settings::General).to receive_messages(main_social_image: "https://dummyimage.com/800x600.jpg",
+                                                 logo_png: "https://dummyimage.com/800x600.png", mascot_image_url: "https://dummyimage.com/800x600.jpg", suggested_tags: "coding, beginners")
     sign_in user
   end
 
@@ -48,7 +45,7 @@ RSpec.describe "Editing with an editor", type: :system, js: true do
         .and_return(true)
     end
 
-    it "displays a rate limit warning", :flaky, js: true do
+    it "displays a rate limit warning", :flaky, :js do
       visit "/#{user.username}/#{article.slug}/edit"
       fill_in "article_body_markdown", with: template.gsub("Suspendisse", "Yooo")
       click_button "Save changes"

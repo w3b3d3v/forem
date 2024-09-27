@@ -1,13 +1,13 @@
 require "rails_helper"
 
-RSpec.describe VerificationMailer, type: :mailer do
+RSpec.describe VerificationMailer do
   let(:user) { create(:user) }
   let(:from_email_address) { "custom_noreply@forem.com" }
 
   describe "#account_ownership_verification_email" do
     before do
-      allow(Settings::SMTP).to receive(:provided_minimum_settings?).and_return(true)
-      allow(Settings::SMTP).to receive(:from_email_address).and_return(from_email_address)
+      allow(Settings::SMTP).to receive_messages(provided_minimum_settings?: true,
+                                                from_email_address: from_email_address)
     end
 
     it "works correctly", :aggregate_failures do

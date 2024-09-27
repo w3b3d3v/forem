@@ -27,6 +27,26 @@ import { getInterceptsForLingeringUserRequests } from '../util/networkUtils';
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... })
 
 /**
+ * Use this function to wait for multiple async/then-able commands to complete.
+ * Useful for making multiple requests.
+ */
+Cypress.Commands.add(
+  'all',
+  /**
+   * @param {Cypress.Chainable<undefined>[]} commands Functions that return
+   * a thenable
+   */
+  (commands) =>
+    commands.reduce(
+      (allResults, command) =>
+        allResults.then((results) =>
+          command.then((result) => [...results, result]),
+        ),
+      cy.wrap([]),
+    ),
+);
+
+/**
  * Use this function to sign a user out without lingering network calls causing unintended side-effects.
  */
 Cypress.Commands.add('signOutUser', () => {
@@ -97,6 +117,42 @@ Cypress.Commands.add('loginUser', ({ email, password }) => {
       cacheAcrossSpecs: true,
     },
   );
+});
+
+/**
+ * Visits a URL with the specified locale. Useful for localisation testing.
+ *
+ * @param url {string} The url to visit
+ * @param locale {string} A valid locale to mock
+ */
+Cypress.Commands.add('visitWithLocale', (url, locale) => {
+  cy.visit(url, {
+    onBeforeLoad: (window) => {
+      Object.defineProperty(window.navigator, 'language', { value: locale });
+      Object.defineProperty(window.navigator, 'languages', {
+        value: [locale],
+      });
+    },
+  });
+});
+
+/**
+ * Visits a URL as a "proper" mobile device, mocking the user agent and not just
+ * the viewport.
+ *
+ * @param url {string} The url to visit
+ */
+Cypress.Commands.add('visitOnMobile', (url) => {
+  cy.viewport('iphone-x');
+  cy.visit(url, {
+    onBeforeLoad: (window) => {
+      Object.defineProperty(window.navigator, 'userAgent', {
+        value:
+          'Mozilla/5.0 (iPhone; CPU iPhone OS 14_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.3 Mobile/15E148 Safari/604.1',
+      });
+      Object.defineProperty(window.navigator, 'platform', { value: 'iPhone' });
+    },
+  });
 });
 
 /**
@@ -394,3 +450,71 @@ Cypress.Commands.add('assertValueCopiedToClipboard', (value) => {
     });
   });
 });
+
+Cypress.Commands.add(
+  'createHtmlVariant',
+  ({
+    name = '',
+    group = 'campaign',
+    target_tag = 'tag1',
+    html = '',
+    published = true,
+    approved = false,
+  }) => {
+    return cy.request('POST', '/admin/customization/html_variants', {
+      name,
+      group,
+      target_tag,
+      html,
+      published,
+      approved,
+      commit: 'Create HTML Variant',
+    });
+  },
+);
+
+Cypress.Commands.add(
+  'setCampaign',
+  ({
+    display_name = '',
+    hero_html_variant_name = '',
+    articles_require_approval = false,
+    sidebar_enabled = false,
+    sidebar_image = 'https://example.com/image.png',
+    url = '',
+    featured_tags = '',
+    call_to_action = '',
+    articles_expiry_time = '4',
+  }) => {
+    return cy.request('POST', '/admin/settings/campaigns', {
+      settings_campaign: {
+        display_name,
+        hero_html_variant_name,
+        articles_require_approval,
+        sidebar_enabled,
+        sidebar_image,
+        url,
+        featured_tags,
+        call_to_action,
+        articles_expiry_time,
+      },
+    });
+  },
+);
+
+// the `const` and `for` below slow down run speed of most cy commands,
+// letting the user see how things run at an easier-to-follow speed.
+// this should only be uncommented when testing one thing at a time with `it.only('...')`
+
+// const COMMAND_DELAY = 500;
+// for (const command of ['visit', 'click', 'trigger', 'type', 'clear', 'reload',]) {
+//     Cypress.Commands.overwrite(command, (originalFn, ...args) => {
+//         const origVal = originalFn(...args);
+
+//         return new Promise((resolve) => {
+//             setTimeout(() => {
+//                 resolve(origVal);
+//             }, COMMAND_DELAY);
+//         });
+//     });
+// }

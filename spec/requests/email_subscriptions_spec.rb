@@ -32,7 +32,7 @@ RSpec.describe "EmailSubscriptions" do
         .to raise_error(ActiveRecord::RecordNotFound)
     end
 
-    it "won't work if it's past expiration date" do
+    it "does not work if it's past expiration date" do
       token = generate_token(user.id)
       Timecop.freeze(32.days.from_now) do
         get email_subscriptions_unsubscribe_url(ut: token)

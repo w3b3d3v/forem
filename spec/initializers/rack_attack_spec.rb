@@ -1,17 +1,15 @@
 require "rails_helper"
 
-describe Rack, ".attack", type: :request, throttle: true do
+describe Rack, ".attack", :throttle, type: :request do
   before do
-    cache_db = ActiveSupport::Cache.lookup_store(:redis_cache_store)
-    allow(Rails).to receive(:cache) { cache_db }
-    cache_db.redis.flushdb
+    allow(Rails).to receive(:cache) { ActiveSupport::Cache.lookup_store(:redis_cache_store) }
     allow(Honeycomb).to receive(:add_field)
-
     ENV["FASTLY_API_KEY"] = "12345"
   end
 
   after do
     ENV["FASTLY_API_KEY"] = nil
+    Rails.cache.clear
   end
 
   describe "search_throttle" do
@@ -145,7 +143,7 @@ describe Rack, ".attack", type: :request, throttle: true do
       sign_in user
     end
 
-    # rubocop:disable RSpec/AnyInstance, RSpec/ExampleLength
+    # rubocop:disable RSpec/AnyInstance
     it "throttles viewing tags", :aggregate_failures do
       allow_any_instance_of(Stories::TaggedArticlesController).to receive(:tagged_count).and_return(0)
       allow_any_instance_of(Stories::TaggedArticlesController).to receive(:stories_by_timeframe)
@@ -170,5 +168,23 @@ describe Rack, ".attack", type: :request, throttle: true do
       end
     end
     # rubocop:enable RSpec/AnyInstance, RSpec/ExampleLength
+  end
+
+  describe "forgot_password_throttle" do
+    it "throttles after 3 attempts" do
+      params = { user: { email: "yo@email.com" } }
+      admin_headers = { "HTTP_FASTLY_CLIENT_IP" => "5.6.7.8" }
+
+      Timecop.freeze do
+        3.times do
+          post "/users/password", params: params, headers: admin_headers
+          expect(response).to have_http_status(:found)
+        end
+        3.times do
+          post "/users/password", params: params, headers: admin_headers
+          expect(response).to have_http_status(:too_many_requests)
+        end
+      end
+    end
   end
 end

@@ -45,6 +45,10 @@ class NotifyMailerPreview < ActionMailer::Preview
     NotifyMailer.with(user: User.first).trusted_role_email
   end
 
+  def base_subscriber_role_email
+    NotifyMailer.with(user: User.first).base_subscriber_role_email
+  end
+
   def feedback_message_resolution_email
     # change email_body text when you need to see a different version
     @user = User.first
@@ -78,6 +82,12 @@ class NotifyMailerPreview < ActionMailer::Preview
   def account_deleted_email
     user = User.last
     NotifyMailer.with(name: user.name, email: user.email).account_deleted_email
+  end
+
+  def organization_deleted_email
+    user = User.last
+    org = Organization.last
+    NotifyMailer.with(name: user.name, org_name: org.name, email: user.email).organization_deleted_email
   end
 
   def export_email

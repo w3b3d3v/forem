@@ -355,7 +355,7 @@ The default maximum value can be overridden by \"API_PER_PAGE_MAX\" environment 
             }
           },
           User: {
-            description: "The representation of a user",
+            description: "The representation of a user returned in a list",
             type: :object,
             properties: {
               type_of: { type: :string },
@@ -369,6 +369,49 @@ The default maximum value can be overridden by \"API_PER_PAGE_MAX\" environment 
               location: { type: :string, nullable: true },
               joined_at: { type: :string },
               profile_image: { type: :string }
+            }
+          },
+          ExtendedUser: {
+            description: "The representation of a user",
+            type: :object,
+            properties: {
+              type_of: { type: :string },
+              id: { type: :integer, format: :int64 },
+              username: { type: :string },
+              name: { type: :string },
+              summary: { type: :string, nullable: true },
+              twitter_username: { type: :string },
+              github_username: { type: :string },
+              email: { type: :string, nullable: true, description: "Email (if user allows displaying email on their profile) or nil" },
+              website_url: { type: :string, nullable: true },
+              location: { type: :string, nullable: true },
+              joined_at: { type: :string },
+              profile_image: { type: :string },
+              badge_ids: { type: :array,
+                           items: { type: :integer },
+                           description: "ids of the badges awarded to the user" }
+            }
+          },
+          MyUser: {
+            description: "The representation of a user when accessed by themselves",
+            type: :object,
+            properties: {
+              type_of: { type: :string },
+              id: { type: :integer, format: :int64 },
+              username: { type: :string },
+              name: { type: :string },
+              summary: { type: :string, nullable: true },
+              twitter_username: { type: :string },
+              github_username: { type: :string },
+              email: { type: :string, nullable: true, description: "Email (if user allows displaying email on their profile) or nil" },
+              website_url: { type: :string, nullable: true },
+              location: { type: :string, nullable: true },
+              joined_at: { type: :string },
+              profile_image: { type: :string },
+              badge_ids: { type: :array,
+                           items: { type: :integer },
+                           description: "ids of the badges awarded to the user" },
+              followers_count: { type: :integer }
             }
           },
           SharedPodcast: {
@@ -396,6 +439,63 @@ The default maximum value can be overridden by \"API_PER_PAGE_MAX\" environment 
             properties: {
               email: { type: :string },
               name: { type: :string, nullable: true }
+            }
+          },
+          Billboard: {
+            description: "Billboard, aka Widget, ex. Display Ad",
+            type: :object,
+            properties: {
+              id: { type: :integer, description: "The ID of the Billboard" },
+              name: { type: :string, description: "For internal use, helps distinguish ads from one another" },
+              body_markdown: { type: :string, description: "The text (in markdown) of the ad (required)" },
+              approved: { type: :boolean, description: "Ad must be both published and approved to be in rotation" },
+              published: { type: :boolean, description: "Ad must be both published and approved to be in rotation" },
+              organization_id: { type: :integer, description: "Identifies the organization to which the ad belongs", nullable: true },
+              creator_id: { type: :integer, description: "Identifies the user who created the ad.", nullable: true },
+              placement_area: { type: :string, enum: Billboard::ALLOWED_PLACEMENT_AREAS,
+                                description: "Identifies which area of site layout the ad can appear in" },
+              tag_list: { type: :string, description: "Tags on which this ad can be displayed (blank is all/any tags)" },
+              exclude_article_ids: { type: :string,
+                                     nullable: true,
+                                     description: "Articles this ad should *not* appear on (blank means no articles are disallowed, and this ad can appear next to any/all articles). Comma-separated list of integer Article IDs" }, # rubocop:disable Layout/LineLength
+              audience_segment_id: { type: :integer,
+                                     description: "Specifies a specific audience segment who will see this billboard" },
+              audience_segment_type: { type: :string,
+                                       enum: AudienceSegment.type_ofs.keys,
+                                       description: "Specifies a group of users who will see this billboard (must match audience_segment_id if both provided)" },
+              target_geolocations: { type: :array,
+                                     items: { type: :string },
+                                     description: "Locations to show this billboard in (blank means it will be shown in all locations). Specified as a comma-separated list or array of ISO 3166-2 country and optionally region codes)" },
+              display_to: { type: :string, enum: Billboard.display_tos.keys, default: "all",
+                            description: "Potentially limits visitors to whom the ad is visible" },
+              type_of: { type: :string, enum: Billboard.type_ofs.keys, default: "in_house",
+                         description: <<~DESCRIBE
+                           Types of the billboards:
+                           in_house (created by admins),
+                           community (created by an entity, appears on entity's content),
+                           external ( created by an entity, or a non-entity, can appear everywhere)
+                         DESCRIBE
+                }
+            },
+            required: %w[name body_markdown placement_area]
+          },
+          Segment: {
+            description: "A manually managed audience segment",
+            type: "object",
+            properties: {
+              id: { type: :integer, description: "The ID of the segment" },
+              type_of: { type: :string, enum: ["manual"], default: "manual", description: "Marks the segment as manually managed (other types are internal)" },
+              user_count: { type: :integer, description: "The current number of users in the segment" }
+            }
+          },
+          SegmentUserIds: {
+            type: "object",
+            properties: {
+              user_ids: {
+                type: :array,
+                items: { type: :integer },
+                maxItems: 10_000
+              }
             }
           }
         }

@@ -225,7 +225,7 @@ module OmniauthHelpers
 
   def omniauth_mock_providers_payload
     Authentication::Providers.available.each do |provider_name|
-      public_send("omniauth_mock_#{provider_name}_payload")
+      public_send(:"omniauth_mock_#{provider_name}_payload")
     end
   end
 

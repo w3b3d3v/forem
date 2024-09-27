@@ -2,7 +2,7 @@ require "rails_helper"
 
 # This test file can be removed once we have a longterm solution for
 # ForemWebView contexts when Apple Auth isn't enabled
-RSpec.describe "Conditional registration (ForemWebView)", type: :system do
+RSpec.describe "Conditional registration (ForemWebView)" do
   let(:all_providers) { Authentication::Providers.available }
   let(:all_providers_except_apple) { Authentication::Providers.available - %i[apple] }
   let(:all_providers_minus_apple_forem) { Authentication::Providers.available - %i[apple forem] }
@@ -35,22 +35,20 @@ RSpec.describe "Conditional registration (ForemWebView)", type: :system do
       visit sign_up_path
       expect(page).to have_text("Continue with Apple")
       expect(page).to have_text("Continue with GitHub")
-      expect(page).to have_text("Have a password? Continue with your email address")
     end
 
     it "renders the social providers when all providers except Apple are enabled" do
       # All auth options except apple for registration
       allow(Settings::Authentication).to receive(:providers).and_return(all_providers_except_apple)
       visit sign_up_path(state: "new-user")
-      expect(page).not_to have_text("Sign up with Apple")
+      expect(page).to have_no_text("Sign up with Apple")
       expect(page).to have_text("Sign up with GitHub")
       expect(page).to have_text("Sign up with Email")
 
       # All auth options except apple for login
       visit sign_up_path
-      expect(page).not_to have_text("Continue with Apple")
+      expect(page).to have_no_text("Continue with Apple")
       expect(page).to have_text("Continue with GitHub")
-      expect(page).to have_text("Have a password? Continue with your email address")
     end
   end
 
@@ -69,22 +67,20 @@ RSpec.describe "Conditional registration (ForemWebView)", type: :system do
       visit sign_up_path
       expect(page).to have_text("Continue with Apple")
       expect(page).to have_text("Continue with GitHub")
-      expect(page).to have_text("Have a password? Continue with your email address")
     end
 
     it "doesn't render social providers if Apple Auth isn't enabled" do
       # Only renders email option because Apple Auth isn't available for registration
       allow(Settings::Authentication).to receive(:providers).and_return(all_providers_except_apple)
       visit sign_up_path(state: "new-user")
-      expect(page).not_to have_text("Sign up with Apple")
-      expect(page).not_to have_text("Sign up with GitHub")
+      expect(page).to have_no_text("Sign up with Apple")
+      expect(page).to have_no_text("Sign up with GitHub")
       expect(page).to have_text("Sign up with Email")
 
       # Only renders email option because Apple Auth isn't available for login
       visit sign_up_path
-      expect(page).not_to have_text("Continue with Apple")
-      expect(page).not_to have_text("Continue with GitHub")
-      expect(page).to have_text("Have a password? Continue with your email address")
+      expect(page).to have_no_text("Continue with Apple")
+      expect(page).to have_no_text("Continue with GitHub")
     end
 
     context "when Apple Auth and email registration aren't enabled" do
@@ -97,34 +93,32 @@ RSpec.describe "Conditional registration (ForemWebView)", type: :system do
         allow(Settings::Authentication).to receive(:providers).and_return(all_providers_minus_apple_forem)
 
         visit sign_up_path(state: "new-user")
-        expect(page).not_to have_text("Sign up with Apple")
-        expect(page).not_to have_text("Sign up with GitHub")
-        expect(page).not_to have_text("Sign up with Forem")
+        expect(page).to have_no_text("Sign up with Apple")
+        expect(page).to have_no_text("Sign up with GitHub")
+        expect(page).to have_no_text("Sign up with Forem")
         expect(page).to have_text("Sorry to be a bummer...")
         expect(page).to have_text(flow_b_fallback_text)
 
         # Only renders email option because Apple Auth isn't available for login
         visit sign_up_path
-        expect(page).not_to have_text("Continue with Apple")
-        expect(page).not_to have_text("Continue with GitHub")
-        expect(page).to have_text("Have a password? Continue with your email address")
+        expect(page).to have_no_text("Continue with Apple")
+        expect(page).to have_no_text("Continue with GitHub")
       end
 
       it "doesn't render the fallback because Forem Auth is enabled" do
         # Only renders email option because Apple Auth isn't available for registration
         allow(Settings::Authentication).to receive(:providers).and_return(all_providers_except_apple)
         visit sign_up_path(state: "new-user")
-        expect(page).not_to have_text("Sign up with GitHub")
+        expect(page).to have_no_text("Sign up with GitHub")
         expect(page).to have_text("Sign up with Forem")
-        expect(page).not_to have_text("Sorry to be a bummer...")
-        expect(page).not_to have_text(flow_b_fallback_text)
+        expect(page).to have_no_text("Sorry to be a bummer...")
+        expect(page).to have_no_text(flow_b_fallback_text)
 
         # Only renders email option because Apple Auth isn't available for login
         visit sign_up_path
-        expect(page).not_to have_text("Continue with Apple")
-        expect(page).not_to have_text("Continue with GitHub")
+        expect(page).to have_no_text("Continue with Apple")
+        expect(page).to have_no_text("Continue with GitHub")
         expect(page).to have_text("Continue with Forem")
-        expect(page).to have_text("Have a password? Continue with your email address")
       end
     end
   end

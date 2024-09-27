@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.xdescribe "Creating Comment", type: :system, js: true do
+RSpec.xdescribe "Creating Comment", :js do
   include_context "with runkit_tag"
 
   let(:user) { create(:user) }
@@ -53,7 +53,7 @@ RSpec.xdescribe "Creating Comment", type: :system, js: true do
       fill_in "text-area", with: raw_comment
       click_button("Submit")
       click_button("Got it")
-      expect(page).not_to have_text("Wait a moment...")
+      expect(page).to have_no_text("Wait a moment...")
     end
 
     it "closes model with 'x' image button" do
@@ -63,7 +63,7 @@ RSpec.xdescribe "Creating Comment", type: :system, js: true do
       fill_in "text-area", with: raw_comment
       click_button("Submit")
       find(".crayons-modal__box__header").click_button
-      expect(page).not_to have_text("Wait a moment...")
+      expect(page).to have_no_text("Wait a moment...")
     end
   end
 
@@ -180,7 +180,7 @@ RSpec.xdescribe "Creating Comment", type: :system, js: true do
 
     reduce_max_file_size = 'document.getElementById("image-upload-main").setAttribute("data-max-file-size-mb", "0")'
     page.execute_script(reduce_max_file_size)
-    expect(page).to have_selector('input[data-max-file-size-mb="0"]', visible: :hidden)
+    expect(page).to have_css('input[data-max-file-size-mb="0"]', visible: :hidden)
 
     attach_file(
       "image-upload-main",
@@ -200,7 +200,7 @@ RSpec.xdescribe "Creating Comment", type: :system, js: true do
 
     allow_vids = 'document.getElementById("image-upload-main").setAttribute("data-permitted-file-types", "[\"video\"]")'
     page.execute_script(allow_vids)
-    expect(page).to have_selector('input[data-permitted-file-types="[\"video\"]"]', visible: :hidden)
+    expect(page).to have_css('input[data-permitted-file-types="[\"video\"]"]', visible: :hidden)
 
     attach_file(
       "image-upload-main",
@@ -220,7 +220,7 @@ RSpec.xdescribe "Creating Comment", type: :system, js: true do
 
     limit_length = 'document.getElementById("image-upload-main").setAttribute("data-max-file-name-length", "5")'
     page.execute_script(limit_length)
-    expect(page).to have_selector('input[data-max-file-name-length="5"]', visible: :hidden)
+    expect(page).to have_css('input[data-max-file-name-length="5"]', visible: :hidden)
 
     attach_file(
       "image-upload-main",

@@ -98,7 +98,7 @@ body.mod-status-true .mod-icon-visible-block {
 }
 
 body.trusted-status-true .trusted-visible-block {
-  display: flex !important;
+  display: block !important;
 }
 
 // The .admin-help-button class is included in this file since it
@@ -110,4 +110,13 @@ body.trusted-status-true .trusted-visible-block {
   @media (max-width: $breakpoint-m) {
     bottom: calc(var(--header-height) + var(--su-3));
   }
+}
+
+.subscription-icon {
+  height: 0.95em;
+  display: inline-block;
+  vertical-align: middle;
+  margin-bottom: 0.05em;
+  max-height:22px;
+  aspect-ratio: 166 / 102;
 }

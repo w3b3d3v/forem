@@ -66,6 +66,8 @@ export class ArticleForm extends Component {
     organizations: PropTypes.string,
     siteLogo: PropTypes.string.isRequired,
     schedulingEnabled: PropTypes.bool.isRequired,
+    coverImageHeight: PropTypes.string.isRequired,
+    coverImageCrop: PropTypes.string.isRequired,
   };
 
   static defaultProps = {
@@ -74,7 +76,14 @@ export class ArticleForm extends Component {
 
   constructor(props) {
     super(props);
-    const { article, version, siteLogo, schedulingEnabled } = this.props;
+    const {
+      article,
+      version,
+      siteLogo,
+      schedulingEnabled,
+      coverImageHeight,
+      coverImageCrop,
+    } = this.props;
     let { organizations } = this.props;
     this.article = JSON.parse(article);
     organizations = organizations ? JSON.parse(organizations) : null;
@@ -137,6 +146,8 @@ export class ArticleForm extends Component {
       updatedAt: this.article.updated_at,
       version,
       siteLogo,
+      coverImageHeight,
+      coverImageCrop,
       helpFor: null,
       helpPosition: null,
       isModalOpen: false,
@@ -398,14 +409,16 @@ export class ArticleForm extends Component {
     }
   };
 
-  switchHelpContext = ({ target }) => {
-    this.setState({
-      ...this.setCommonProps({
-        helpFor: target.id,
-        helpPosition: target.getBoundingClientRect().y,
-      }),
-    });
-  };
+  switchHelpContext = (event, override = null) => {
+    if (!this.state.previewShowing) {
+      const id = override || event.target.id;
+      this.setState({
+        ...this.setCommonProps({
+          helpFor: id,
+          helpPosition: event.target.getBoundingClientRect().y,
+        }),
+      });
+  }};
 
   render() {
     const {
@@ -432,6 +445,8 @@ export class ArticleForm extends Component {
       siteLogo,
       markdownLintErrors,
       formKey,
+      coverImageHeight,
+      coverImageCrop,
     } = this.state;
 
     return (
@@ -443,6 +458,8 @@ export class ArticleForm extends Component {
         className="crayons-article-form"
         onSubmit={this.onSubmit}
         onInput={this.toggleEdit}
+        coverImageHeight={coverImageHeight}
+        coverImageCrop={coverImageCrop}
         aria-label="Edit post"
       >
         <Header
@@ -484,6 +501,8 @@ export class ArticleForm extends Component {
             onMainImageUrlChange={this.handleMainImageUrlChange}
             errors={errors}
             switchHelpContext={this.switchHelpContext}
+            coverImageHeight={coverImageHeight}
+            coverImageCrop={coverImageCrop}
           />
         )}
 
@@ -526,6 +545,7 @@ export class ArticleForm extends Component {
           onConfigChange={this.handleConfigChange}
           submitting={submitting}
           previewLoading={previewLoading}
+          switchHelpContext={this.switchHelpContext}
         />
 
         <KeyboardShortcuts

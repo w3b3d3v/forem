@@ -34,7 +34,7 @@ RSpec.describe DataUpdateWorker, type: :worker do
       end.to change(DataUpdateScript, :count).by(2)
     end
 
-    it "will not run a script that has already been run" do
+    it "does not run a script that has already been run" do
       worker.perform
       expect do
         worker.perform

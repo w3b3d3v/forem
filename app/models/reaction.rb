@@ -7,9 +7,7 @@ class Reaction < ApplicationRecord
 
   counter_culture :reactable,
                   column_name: proc { |model|
-                    # After FeatureFlag :multiple_reactions, this could change to:
-                    # ReactionCategory[model.category].visible_to_public?
-                    public_reaction_types.include?(model.category.to_s) ? "public_reactions_count" : "reactions_count"
+                    ReactionCategory[model.category].visible_to_public? ? "public_reactions_count" : "reactions_count"
                   }
   counter_culture :user
 
@@ -39,6 +37,18 @@ class Reaction < ApplicationRecord
   scope :unarchived, -> { where.not(status: "archived") }
   scope :from_user, ->(user) { where(user: user) }
   scope :readinglist_for_user, ->(user) { readinglist.unarchived.only_articles.from_user(user) }
+  scope :distinct_categories, -> { select("distinct(reactions.category) as category, reactable_id, reactable_type") }
+  scope :live_reactable, lambda {
+    joins("LEFT JOIN articles ON reactions.reactable_id = articles.id AND reactions.reactable_type = 'Article'")
+      .joins("LEFT JOIN users ON reactions.reactable_id = users.id AND reactions.reactable_type = 'User'")
+      .where("
+          CASE
+            WHEN reactions.reactable_type = 'Article' THEN articles.published = TRUE
+            WHEN reactions.reactable_type = 'User' THEN users.username NOT LIKE 'spam_%'
+            ELSE TRUE
+          END
+        ")
+  }
 
   validates :category, inclusion: { in: ReactionCategory.all_slugs.map(&:to_s) }
   validates :reactable_type, inclusion: { in: REACTABLE_TYPES }
@@ -79,18 +89,7 @@ class Reaction < ApplicationRecord
     end
 
     def public_reaction_types
-      if FeatureFlag.enabled?(:multiple_reactions)
-        reaction_types = ReactionCategory.public.map(&:to_s) - ["readinglist"]
-      else
-        # used to include "readinglist" but that's not correct now, even without the feature flag
-        # we aren't going to re-process these, they will gradually correct over time
-        reaction_types = %w[like]
-        unless FeatureFlag.enabled?(:replace_unicorn_with_jump_to_comments)
-          reaction_types << "unicorn"
-        end
-      end
-
-      reaction_types
+      @public_reaction_types ||= ReactionCategory.public.map(&:to_s) - ["readinglist"]
     end
 
     def for_analytics
@@ -151,6 +150,7 @@ class Reaction < ApplicationRecord
   # - reaction is negative
   # - receiver is the same user as the one who reacted
   # - reaction status is marked invalid
+  # - reaction is not in a category that should be notified
   def skip_notification_for?(_receiver)
     reactor_id = case reactable
                  when User
@@ -159,7 +159,7 @@ class Reaction < ApplicationRecord
                    reactable.user_id
                  end
 
-    (status == "invalid") || points.negative? || (user_id == reactor_id)
+    !should_notify? || (status == "invalid") || points.negative? || (user_id == reactor_id)
   end
 
   def reaction_on_organization_article?
@@ -174,6 +174,14 @@ class Reaction < ApplicationRecord
 
   def reaction_category
     ReactionCategory[category.to_sym]
+  end
+
+  def readable_date
+    if created_at.year == Time.current.year
+      I18n.l(created_at, format: :short)
+    else
+      I18n.l(created_at, format: :short_with_yy)
+    end
   end
 
   private
@@ -194,14 +202,6 @@ class Reaction < ApplicationRecord
     Reactions::BustReactableCacheWorker.new.perform(id)
   end
 
-  def reading_time
-    reactable.reading_time if category == "readinglist"
-  end
-
-  def viewable_by
-    user_id
-  end
-
   def assign_points
     self.points = CalculateReactionPoints.call(self)
   end
@@ -214,7 +214,7 @@ class Reaction < ApplicationRecord
   end
 
   def negative_reaction_from_untrusted_user?
-    return if user&.any_admin? || user&.id == Settings::General.mascot_user_id
+    return false if user&.any_admin? || user&.id == Settings::General.mascot_user_id
 
     negative? && !user.trusted?
   end
@@ -235,5 +235,9 @@ class Reaction < ApplicationRecord
 
     Users::RecordFieldTestEventWorker
       .perform_async(user_id, AbExperiment::GoalConversionHandler::USER_CREATES_ARTICLE_REACTION_GOAL)
+  end
+
+  def should_notify?
+    ReactionCategory.notifiable.include?(category.to_sym)
   end
 end

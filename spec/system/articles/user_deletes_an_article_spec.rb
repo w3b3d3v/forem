@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe "Deleting Article", type: :system do
+RSpec.describe "Deleting Article" do
   let(:article) { create(:article) }
 
   before do
@@ -10,7 +10,7 @@ RSpec.describe "Deleting Article", type: :system do
     click_on "Delete"
   end
 
-  it "author of article deletes own article", js: true do
+  it "author of article deletes own article", :js do
     click_on "Delete" # This is for confirming deletion
     expect(page).to have_text("Write your first post now")
   end

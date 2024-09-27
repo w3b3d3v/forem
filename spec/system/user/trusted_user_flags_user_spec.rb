@@ -1,7 +1,7 @@
 require "rails_helper"
 
-RSpec.describe "Flagging users from profile pages", type: :system, js: true do
-  let(:user) { create :user }
+RSpec.describe "Flagging users from profile pages", :js do
+  let(:user) { create(:user) }
   let(:unflag_text) { "Unflag @#{user.username}" }
   let(:flag_text) { "Flag @#{user.username}" }
 
@@ -9,7 +9,7 @@ RSpec.describe "Flagging users from profile pages", type: :system, js: true do
     it "does not show the flag button" do
       visit user_profile_path(user.username)
       click_button(id: "user-profile-dropdown")
-      expect(page).not_to have_link(flag_text)
+      expect(page).to have_no_link(flag_text)
     end
   end
 
@@ -20,7 +20,7 @@ RSpec.describe "Flagging users from profile pages", type: :system, js: true do
       visit user_profile_path(user.username)
 
       click_button(id: "user-profile-dropdown")
-      expect(page).not_to have_link(flag_text)
+      expect(page).to have_no_link(flag_text)
     end
   end
 
@@ -29,7 +29,7 @@ RSpec.describe "Flagging users from profile pages", type: :system, js: true do
       sign_in user
 
       visit user_profile_path(user.username)
-      expect(page).not_to have_selector("user-profile-dropdown")
+      expect(page).to have_no_css("user-profile-dropdown")
     end
   end
 

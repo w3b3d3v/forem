@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe Badges::AwardContributorFromGithub, type: :service, vcr: true do
+RSpec.describe Badges::AwardContributorFromGithub, :vcr, type: :service do
   let(:badge) { create(:badge, title: "DEV Contributor") }
 
   before do
@@ -10,7 +10,7 @@ RSpec.describe Badges::AwardContributorFromGithub, type: :service, vcr: true do
     stub_const("#{described_class}::REPOSITORIES", ["forem/DEV-Android"])
   end
 
-  it "won't work without Github oauth configured" do
+  it "does not work without Github oauth configured" do
     allow(Settings::Authentication).to receive(:providers).and_return([])
     user = create(:user, :with_identity, identities: ["github"], uid: "389169")
 

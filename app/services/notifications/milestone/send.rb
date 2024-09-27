@@ -3,16 +3,16 @@ module Notifications
     ARTICLE_FINAL_PUBLICATION_TIME_FOR_MILESTONE = Time.zone.local(2019, 2, 25)
 
     class Send
+      def self.call(...)
+        new(...).call
+      end
+
       # @param type [String] - "View" or "Reaction"
       # @param article [Object] - ActiveRecord Article object
       def initialize(type, article)
         @type = type
         @article = article
         @next_milestone = next_milestone
-      end
-
-      def self.call(...)
-        new(...).call
       end
 
       def call
@@ -47,7 +47,7 @@ module Notifications
       end
 
       def should_send_milestone?
-        return if article_published_behind_time?
+        return false if article_published_behind_time?
 
         last_milestone_notification = Notification.find_by(
           user_id: article.user_id,

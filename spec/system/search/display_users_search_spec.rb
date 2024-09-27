@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe "Display users search spec", type: :system, js: true do
+RSpec.describe "Display users search spec", :js do
   let(:current_user) { create(:user, username: "ironman", name: "Iron Man") }
   let(:found_user) { create(:user, username: "janedoe", name: "Jane Doe") }
   let(:found_two_user) { create(:user, username: "doejane", name: "Doe Jane") }
@@ -15,8 +15,8 @@ RSpec.describe "Display users search spec", type: :system, js: true do
 
     expect(page).to have_content(found_user.name)
     expect(page).to have_content(found_two_user.name)
-    expect(page).not_to have_content(current_user.name)
-    expect(page).not_to have_content(not_found_user.name)
+    expect(page).to have_no_content(current_user.name)
+    expect(page).to have_no_content(not_found_user.name)
   end
 
   it "returns all expected user fields" do

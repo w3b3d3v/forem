@@ -30,7 +30,7 @@ module RpushHelpers
 
     original = consumer_app.method(:save)
     allow(consumer_app).to receive(:save) do
-      rpush_app.public_send("#{auth_key}=", consumer_app.auth_credentials)
+      rpush_app.public_send(:"#{auth_key}=", consumer_app.auth_credentials)
       original.call
     end
 

@@ -14,9 +14,9 @@ module Admin
         configs.each do |key, value|
           settings_model = ::Settings::Mandatory::MAPPINGS[key.to_sym]
           if value.is_a?(Array)
-            settings_model.public_send("#{key}=", value.compact_blank) if value.present?
+            settings_model.public_send(:"#{key}=", value.compact_blank) if value.present?
           else
-            settings_model.public_send("#{key}=", value.strip) unless value.nil?
+            settings_model.public_send(:"#{key}=", value.strip) unless value.nil?
           end
         rescue ActiveRecord::RecordInvalid => e
           errors << e.message

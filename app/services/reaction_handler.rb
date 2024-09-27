@@ -37,14 +37,14 @@ class ReactionHandler
   delegate :rate_limiter, to: :current_user
 
   def create
-    destroy_contradictory_mod_reactions if reactable_type == "Article"
+    destroy_contradictory_mod_reactions if %w[Article Comment].include?(reactable_type)
     return noop_result if existing_reaction
 
     create_new_reaction
   end
 
   def toggle
-    destroy_contradictory_mod_reactions if reactable_type == "Article"
+    destroy_contradictory_mod_reactions if %w[Article Comment].include?(reactable_type)
     return handle_existing_reaction if existing_reaction
 
     create_new_reaction
@@ -85,11 +85,16 @@ class ReactionHandler
     reaction = build_reaction(category)
     result = result(reaction, nil)
 
-    if reaction.save
-      rate_limit_reaction_creation
-      sink_articles(reaction)
-      send_notifications(reaction)
-      update_last_reacted_at(reaction)
+    begin
+      if reaction.save
+        rate_limit_reaction_creation
+        sink_articles(reaction)
+        send_notifications(reaction)
+        record_feed_event(reaction)
+        update_last_reacted_at(reaction)
+      end
+    rescue ActiveRecord::RecordNotUnique
+      Rails.logger.error "Reaction already exists: #{reaction.inspect}"
     end
 
     result.action = "create"
@@ -157,6 +162,13 @@ class ReactionHandler
     return unless reaction.reaction_on_organization_article?
 
     Notification.send_reaction_notification_without_delay(reaction, reaction.reactable.organization)
+  end
+
+  def record_feed_event(reaction)
+    return unless (reaction.visible_to_public? || reaction.category == "readinglist") &&
+      reaction.reactable_type == "Article"
+
+    FeedEvent.record_journey_for(reaction.user, article: reaction.reactable, category: :reaction)
   end
 
   def rate_article(reaction)

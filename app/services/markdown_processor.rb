@@ -27,12 +27,13 @@ module MarkdownProcessor
       tbody td tfoot th thead time tr u ul
     ].freeze
 
-    # In FEED but not DISPLAY_AD: [i iframe]
-    # In DISPLAY_AD but not FEED: [abbr add figcaption hr kbd mark rp rt ruby source sub video]
-    DISPLAY_AD = %w[a abbr add b blockquote br center cite code col colgroup dd del div dl dt
-                    em figcaption h1 h2 h3 h4 h5 h6 hr img kbd li mark ol p pre q rp rt
-                    ruby small source span strong sub sup table tbody td tfoot th thead
-                    time tr u ul video].freeze
+    # In FEED but not BILLBOARD: [i iframe]
+    # In BILLBOARD but not FEED: [abbr add figcaption hr kbd mark rp rt ruby source sub video]
+    # In BILLBOARD but not RENDERED_MARKDOWN_SCRUBBER: [div]
+    BILLBOARD = %w[a abbr add b blockquote br center cite code col colgroup dd del div dl dt
+                   em figcaption h1 h2 h3 h4 h5 h6 hr img kbd li mark ol p pre q rp rt
+                   ruby small source span strong sub sup table tbody td tfoot th thead
+                   time tr u ul video].freeze
 
     # In FEED but not RENDERED_MARKDOWN_SCRUBBER: [div i iframe]
     # In RENDERED_MARKDOWN_SCRUBBER but not FEED: [abbr add figcaption hr kbd mark rp rt ruby source sub video]
@@ -56,6 +57,8 @@ module MarkdownProcessor
     SIDEBAR = %w[b br em i p strike strong u].freeze
 
     BADGE_ACHIEVEMENT_CONTEXT_MESSAGE = %w[a b code em i strong u].freeze
+
+    EMAIL_COMMENT = %w[strong em a p span].freeze
   end
 
   # A container module for the allowed attributes in various rendering
@@ -67,7 +70,7 @@ module MarkdownProcessor
     PODCAST_SHOW = %w[alt class colspan data-conversation data-lang em height href id ref
                       rel rowspan size span src start strong title value width].freeze
 
-    DISPLAY_AD = %w[alt class height href src width].freeze
+    BILLBOARD = %w[alt class height href src width].freeze
 
     RENDERED_MARKDOWN_SCRUBBER = %w[alt colspan controls data-conversation data-lang
                                     data-no-instant data-url href id loop name ref rel
@@ -76,5 +79,7 @@ module MarkdownProcessor
     MARKDOWN_PROCESSOR = %w[alt href src].freeze
 
     BADGE_ACHIEVEMENT_CONTEXT_MESSAGE = %w[href name].freeze
+
+    EMAIL_COMMENT = %w[href].freeze
   end
 end

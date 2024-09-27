@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe AuthenticationHelper, type: :helper do
+RSpec.describe AuthenticationHelper do
   let(:user) { create(:user, :with_identity) }
 
   before do
@@ -14,7 +14,7 @@ RSpec.describe AuthenticationHelper, type: :helper do
       allow(user).to receive(:identities).and_return(user.identities.where(provider: provider))
 
       expected_result = Authentication::Providers.get!(provider)
-      expect(helper.authentication_enabled_providers_for_user(user)).to match_array([expected_result])
+      expect(helper.authentication_enabled_providers_for_user(user)).to contain_exactly(expected_result)
     end
 
     it "does not return a disabled provider" do
@@ -52,7 +52,7 @@ RSpec.describe AuthenticationHelper, type: :helper do
       allow(Authentication::Providers).to receive(:available).and_return([provider])
 
       expected_result = provider.to_s
-      expect(helper.available_providers_array).to match_array([expected_result])
+      expect(helper.available_providers_array).to contain_exactly(expected_result)
     end
   end
 
@@ -77,8 +77,7 @@ RSpec.describe AuthenticationHelper, type: :helper do
     context "when invite-only-mode enabled and no enabled registration options" do
       before do
         allow(ForemInstance).to receive(:private?).and_return(true)
-        allow(Settings::Authentication).to receive(:providers).and_return([])
-        allow(Settings::Authentication).to receive(:allow_email_password_registration).and_return(false)
+        allow(Settings::Authentication).to receive_messages(providers: [], allow_email_password_registration: false)
       end
 
       it "returns 'crayons-hover-tooltip' class for relevant helpers" do

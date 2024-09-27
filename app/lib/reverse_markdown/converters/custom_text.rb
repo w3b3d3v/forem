@@ -32,7 +32,7 @@ module ReverseMarkdown
       end
 
       def preserve_nbsp(text)
-        text.gsub(/\u00A0/, "&nbsp;")
+        text.gsub("\u00A0", "&nbsp;")
       end
 
       def remove_border_newlines(text)

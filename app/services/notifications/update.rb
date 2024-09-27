@@ -2,13 +2,13 @@ module Notifications
   class Update
     delegate :article_data, :comment_data, :user_data, :organization_data, to: Notifications
 
+    def self.call(...)
+      new(...).call
+    end
+
     def initialize(notifiable, action = nil)
       @notifiable = notifiable
       @action = action
-    end
-
-    def self.call(...)
-      new(...).call
     end
 
     def call
@@ -24,7 +24,7 @@ module Notifications
       return if notifications.none?
 
       new_json_data = {}
-      new_json_data[notifiable.class.name.downcase] = public_send("#{notifiable.class.name.downcase}_data", notifiable)
+      new_json_data[notifiable.class.name.downcase] = public_send(:"#{notifiable.class.name.downcase}_data", notifiable)
       new_json_data[:user] = user_data(notifiable.user)
       add_organization_data = notifiable.is_a?(Article) && notifiable.organization
       new_json_data[:organization] = organization_data(notifiable.organization) if add_organization_data

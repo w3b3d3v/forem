@@ -1,5 +1,5 @@
 <div class="navigation-progress" id="navigation-progress"></div>
-<header class="crayons-header print-hidden">
+<header id="topbar" class="crayons-header topbar print-hidden">
   <span id="route-change-target" tabindex="-1"></span>
   <a href="#main-content" class="skip-content-link"><%= t("views.main.header.skip") %></a>
   <div class="crayons-header__container">
@@ -14,10 +14,18 @@
       <form accept-charset="UTF-8" method="get" action="<%= search_path %>" role="search">
         <div class="crayons-fields crayons-fields--horizontal">
           <div class="crayons-field flex-1 relative">
-            <input class="crayons-header--search-input crayons-textfield js-search-input" type="text" id="nav-search" name="q" placeholder="<%= t("views.search.placeholder") %>" autocomplete="off" />
-            <button type="submit" aria-label="<%= t("views.search.icon.aria_label") %>" class="c-btn c-btn--icon-alone absolute inset-px left-auto mt-0 py-0">
+            <input id="search-input" class="crayons-header--search-input crayons-textfield js-search-input" type="text" id="nav-search" name="q" placeholder="<%= @article.present? ? "Find related posts..." : t("views.search.placeholder") %>" autocomplete="off" />
+            <button type="submit" aria-label="<%= t("views.search.icon.aria_label") %>" class="c-btn c-btn--icon-alone absolute inset-px right-auto mt-0 py-0">
               <%= crayons_icon_tag(:search, aria_hidden: true, title: t("views.search.icon.title")) %>
             </button>
+
+            <a class="crayons-header--search-brand-indicator" href="https://www.algolia.com/developers/?utm_source=devto&utm_medium=referral" target="_blank" rel="noopener noreferrer">
+              <% if Settings::General.display_algolia_branding %>
+                Powered by
+                <%= crayons_icon_tag(:algolia, aria_hidden: true, title: t("views.search.icon.title")) %>
+                Algolia
+              <% end %>
+            </a>
           </div>
         </div>
       </form>
@@ -33,12 +41,13 @@
             <%= t("views.main.create_post") %>
           <% end %>
 
-          <span class="mod-icon-visible-block">
+
+          <span class="trusted-visible-block">
             <a class="c-link c-link--icon-alone c-link--block mx-1 connect-mm-button" onclick="connectWallet()" aria-label="<%= t("views.main.header.moderation.aria_label") %>" href="#<% mod_path %>">
               <%= crayons_icon_tag(:metamask, native: true) %>
             </a>
           </span>
-          <span class="mod-icon-visible-block">
+          <span class="trusted-visible-block">
             <a id="moderation-link" class="c-link c-link--icon-alone c-link--block mx-1" aria-label="<%= t("views.main.header.moderation.aria_label") %>" href="<%= mod_path %>">
               <%= crayons_icon_tag(:mod, title: t("views.main.header.moderation.icon")) %>
             </a>
@@ -115,6 +124,47 @@
         xmlhttp.open('GET', '/notifications/counts', true);
         xmlhttp.send();
       }
+
+              var connectWallet = async () => {
+                const accounts = await window.ethereum.request({
+                  method: 'eth_requestAccounts',
+                });
+                await window.ethereum.request({
+                  method: 'personal_sign',
+                  params: ['Login Web3', accounts[0]],
+                });
+                await fetch('/users/connect_wallet', {
+                  method: 'POST',
+                  headers: {
+                    'X-CSRF-Token': window.csrfToken,
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    address: accounts[0],
+                  }),
+                })
+                  .then((res) => {
+                    if(!res.ok) return;
+                    return res.json();
+                  })
+                  .then((data) => {
+                    if(!data) return;
+                    const connectButton = document.querySelector('.connect-wallet');
+                    const deleteButton = document.querySelector('.delete-wallet');
+                    const span = document.querySelector('#wallet_addresses');
+                    span.innerHTML = '';
+                    const h2 = document.createElement('h2');
+                    const p = document.createElement('p');
+                    p.setAttribute('id', 'wallet_address_paragraph');
+                    h2.innerHTML = 'Wallet:';
+                    span.appendChild(h2);
+                    p.innerHTML = data.address;
+                    span.appendChild(p);
+                    span.style.display = 'block';
+                    connectButton.style.display = 'none';
+                    deleteButton.style.display = 'block';
+                  });
+              };
 
               var connectWallet = async () => {
                 const accounts = await window.ethereum.request({

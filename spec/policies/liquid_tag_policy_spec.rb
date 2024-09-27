@@ -8,8 +8,8 @@ RSpec.describe LiquidTagPolicy, type: :policy do
   let(:user_authorization_method_name) { nil }
 
   before do
-    allow(liquid_tag).to receive(:user_authorization_method_name).and_return(user_authorization_method_name)
-    allow(liquid_tag).to receive(:parse_context).and_return(parse_context)
+    allow(liquid_tag).to receive_messages(user_authorization_method_name: user_authorization_method_name,
+                                          parse_context: parse_context)
   end
 
   describe "initialize?" do

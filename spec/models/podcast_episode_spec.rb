@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe PodcastEpisode, type: :model do
+RSpec.describe PodcastEpisode do
   let(:podcast_episode) { create(:podcast_episode) }
 
   describe "validations" do
@@ -96,7 +96,7 @@ RSpec.describe PodcastEpisode, type: :model do
       end
     end
 
-    describe "Cloudinary configuration and processing", cloudinary: true do
+    describe "Cloudinary configuration and processing", :cloudinary do
       it "prefixes an image URL with a path" do
         image_url = "https://dummyimage.com/10x10"
         podcast_episode.body = "<img src=\"#{image_url}\">"
@@ -129,6 +129,15 @@ RSpec.describe PodcastEpisode, type: :model do
                                    args: [podcast_episode.id, podcast_episode.path, podcast_episode.podcast_slug]) do
         podcast_episode.save
       end
+    end
+  end
+
+  context "when indexing with Algolia", :algolia do
+    it "triggers indexing on save" do
+      allow(AlgoliaSearch::SearchIndexWorker).to receive(:perform_async)
+      create(:podcast_episode)
+      expect(AlgoliaSearch::SearchIndexWorker).to have_received(:perform_async).with("PodcastEpisode",
+                                                                                     kind_of(Integer), false).once
     end
   end
 end

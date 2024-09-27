@@ -1,17 +1,17 @@
 require "rails_helper"
 
-RSpec.describe "User visits a homepage", type: :system do
+RSpec.describe "User visits a homepage" do
   def expect_broadcast_data(page)
     within ".broadcast-wrapper" do
-      expect(page).to have_selector(".broadcast-data")
+      expect(page).to have_css(".broadcast-data")
       expect(page).to have_text("Hello, World!")
     end
   end
 
   def expect_no_broadcast_data(page)
-    expect(page).not_to have_css(".broadcast-wrapper")
-    expect(page).not_to have_selector(".broadcast-data")
-    expect(page).not_to have_text("Hello, World!")
+    expect(page).to have_no_css(".broadcast-wrapper")
+    expect(page).to have_no_css(".broadcast-data")
+    expect(page).to have_no_text("Hello, World!")
   end
 
   context "when user hasn't logged in" do
@@ -22,11 +22,11 @@ RSpec.describe "User visits a homepage", type: :system do
         visit "/"
       end
 
-      it "renders the broadcast", js: true do
+      it "renders the broadcast", :js do
         expect_broadcast_data(page)
       end
 
-      it "dismisses the broadcast", js: true do
+      it "dismisses the broadcast", :js do
         wait_for_javascript
 
         find(".close-announcement-button").click
@@ -41,7 +41,7 @@ RSpec.describe "User visits a homepage", type: :system do
         visit "/"
       end
 
-      it "does not render the broadcast", js: true do
+      it "does not render the broadcast", :js do
         expect_no_broadcast_data(page)
       end
     end
@@ -61,11 +61,11 @@ RSpec.describe "User visits a homepage", type: :system do
         visit "/"
       end
 
-      it "renders the broadcast", js: true do
+      it "renders the broadcast", :js do
         expect_broadcast_data(page)
       end
 
-      it "dismisses the broadcast", js: true do
+      it "dismisses the broadcast", :js do
         get "/async_info/base_data"
         visit "/"
         wait_for_javascript
@@ -82,7 +82,7 @@ RSpec.describe "User visits a homepage", type: :system do
         visit "/"
       end
 
-      it "does not render the broadcast", js: true do
+      it "does not render the broadcast", :js do
         expect_no_broadcast_data(page)
       end
     end
@@ -95,7 +95,7 @@ RSpec.describe "User visits a homepage", type: :system do
         visit "/"
       end
 
-      it "does not render the broadcast", js: true do
+      it "does not render the broadcast", :js do
         expect_no_broadcast_data(page)
       end
     end

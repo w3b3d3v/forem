@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe "User visits /pod page", type: :system do
+RSpec.describe "User visits /pod page" do
   let!(:podcast_episode1) { create(:podcast_episode, published_at: 7.hours.ago) }
   let!(:podcast_episode2) { create(:podcast_episode, published_at: 7.days.ago) }
   let!(:podcast_episode3) { create(:podcast_episode) }
@@ -11,7 +11,7 @@ RSpec.describe "User visits /pod page", type: :system do
 
   before { visit "/pod" }
 
-  it "displays the podcasts", js: true do
+  it "displays the podcasts", :js do
     within "#main-content" do
       expect(page).to have_link(nil, href: podcast_episode1.path)
       expect(page).to have_link(nil, href: podcast_episode2.path)
@@ -21,20 +21,20 @@ RSpec.describe "User visits /pod page", type: :system do
 
   it "displays the podcasts with published_at" do
     within "#main-content" do
-      expect(page).to have_selector("time.published-at")
-      expect(page).to have_selector("span.time-ago-indicator-initial-placeholder")
+      expect(page).to have_css("time.published-at")
+      expect(page).to have_css("span.time-ago-indicator-initial-placeholder")
     end
   end
 
   it "doesn't display an unreachable podcast" do
     within "#main-content" do
-      expect(page).not_to have_link(nil, href: un_podcast_episode.path)
+      expect(page).to have_no_link(nil, href: un_podcast_episode.path)
     end
   end
 
   it "doesn't dsplay a podcast that is not published" do
     within "#main-content" do
-      expect(page).not_to have_link(nil, href: unpublished_episode.path)
+      expect(page).to have_no_link(nil, href: unpublished_episode.path)
     end
   end
 end

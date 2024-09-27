@@ -28,8 +28,11 @@ RSpec.describe "Reactions" do
           { "category" => "like", "count" => 1 },
           { "category" => "readinglist", "count" => 0 },
           { "category" => "unicorn", "count" => 0 },
+          { "category" => "exploding_head", "count" => 0 },
+          { "category" => "raised_hands", "count" => 0 },
+          { "category" => "fire", "count" => 0 },
         ]
-        expect(result["article_reaction_counts"]).to contain_exactly(*expected_reactions_counts)
+        expect(result["article_reaction_counts"]).to match_array(expected_reactions_counts)
         expect(result["reactions"].to_json).to eq(user.reactions.where(reactable: article).to_json)
       end
 
@@ -60,8 +63,11 @@ RSpec.describe "Reactions" do
           { "category" => "like", "count" => 1 },
           { "category" => "readinglist", "count" => 0 },
           { "category" => "unicorn", "count" => 0 },
+          { "category" => "exploding_head", "count" => 0 },
+          { "category" => "raised_hands", "count" => 0 },
+          { "category" => "fire", "count" => 0 },
         ]
-        expect(result["article_reaction_counts"]).to contain_exactly(*expected_reactions)
+        expect(result["article_reaction_counts"]).to match_array(expected_reactions)
         expect(result["reactions"]).to be_empty
       end
 
@@ -209,6 +215,23 @@ RSpec.describe "Reactions" do
       it "has success http status" do
         post "/reactions", params: article_params
         expect(response).to be_successful
+      end
+
+      it "sends Algolia insight event" do
+        # Set up the expectation before making the request
+        allow(Settings::General).to receive_messages(algolia_application_id: "test", algolia_api_key: "test")
+        algolia_service_instance = instance_double(AlgoliaInsightsService)
+        allow(AlgoliaInsightsService).to receive(:new).and_return(algolia_service_instance)
+        allow(algolia_service_instance).to receive(:track_event)
+        post "/reactions", params: article_params
+        expect(algolia_service_instance).to have_received(:track_event).with(
+          "conversion",
+          "Reaction Created",
+          user.id,
+          article.id,
+          "Article_#{Rails.env}",
+          instance_of(Integer),
+        )
       end
     end
 

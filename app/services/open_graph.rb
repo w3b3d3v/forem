@@ -26,7 +26,7 @@ class OpenGraph
   DEFAULT_METHODS.each do |method_name|
     define_method(method_name) do |use_best = false|
       if use_best
-        page.public_send("best_#{method_name}".to_sym)
+        page.public_send(:"best_#{method_name}")
       else
         page.public_send(method_name)
       end
@@ -85,7 +85,8 @@ class OpenGraph
 
   def fetch_html(url)
     Rails.cache.fetch("#{url}_open_graph_html", expires_in: CACHE_EXPIRY_IN_MINUTES.minutes) do
-      Net::HTTP.get(URI(url))
+      response = HTTParty.get(url, headers: { "User-Agent" => "#{Settings::Community.community_name} (#{URL.url})" })
+      response&.body
     end
   end
 

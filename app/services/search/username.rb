@@ -18,6 +18,13 @@ module Search
       serialize results
     end
 
+    def self.serialize(results)
+      Search::NestedUserSerializer
+        .new(results, is_collection: true)
+        .serializable_hash[:data]
+        .pluck(:attributes)
+    end
+
     def initialize(context: nil)
       @scope = scope_with_context(context) if context
       @scope ||= scope_without_context
@@ -41,7 +48,7 @@ module Search
       user_ids += context.co_author_ids if context&.co_author_ids.present?
       user_ids += ::Comment.where(commentable: context).pluck(:user_id)
 
-      selects = ATTRIBUTES.map { |sym| "users.#{sym}".to_sym }
+      selects = ATTRIBUTES.map { |sym| :"users.#{sym}" }
       selects << ::User.sanitize_sql(["users.id IN (?) as has_commented", user_ids])
 
       ::User
@@ -50,12 +57,6 @@ module Search
         .order("has_commented DESC")
     end
 
-    def self.serialize(results)
-      Search::NestedUserSerializer
-        .new(results, is_collection: true)
-        .serializable_hash[:data]
-        .pluck(:attributes)
-    end
     private_class_method :serialize
   end
 end

@@ -7,7 +7,7 @@ pt:
       actions:
         aria_label: Ações do artigo.
       comments:
-        aria_label: Comentários para post %{title} (%{num})
+        aria_label: Comentários para post %{title}
         subtitle_html: Discussão %{num}
         num: "(%{num})"
         subscribe: Se inscrever
@@ -66,8 +66,8 @@ pt:
         heading: Tem certeza de que quer desbloquear a discussão neste post?
         desc: Os usuários poderão adicionar novos comentários. Você pode bloquear a discussão a qualquer momento para impedir que os usuários deixem comentários novamente.
         cancel: Cancelar
-        notes: 'Notas sobre quando essa discussão foi bloqueada (somente visível para você e os administradores):'
-        reason: 'Razão pela qual esta discussão foi bloqueada (publicamente visível):'
+        notes: "Notas sobre quando essa discussão foi bloqueada (somente visível para você e os administradores):"
+        reason: "Razão pela qual esta discussão foi bloqueada (publicamente visível):"
         submit: Desbloquear discussão
       unpublished:
         subtitle: Post não publicado.

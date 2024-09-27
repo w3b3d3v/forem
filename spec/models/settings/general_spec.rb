@@ -1,18 +1,18 @@
 require "rails_helper"
 
-RSpec.describe Settings::General, type: :model do
+RSpec.describe Settings::General do
   describe "validations" do
     describe "validating URLs" do
       let(:url_fields) do
         %w[
-          main_social_image logo_png mascot_image_url onboarding_background_image
+          main_social_image logo_png mascot_image_url
         ]
       end
 
       it "accepts valid URLs" do
         url_fields.each do |attribute|
           expect do
-            described_class.public_send("#{attribute}=", "https://example.com")
+            described_class.public_send(:"#{attribute}=", "https://example.com")
           end.not_to raise_error
         end
       end
@@ -20,7 +20,7 @@ RSpec.describe Settings::General, type: :model do
       it "rejects invalid URLs and accepts valid ones", :aggregate_failures do
         url_fields.each do |attribute|
           expect do
-            described_class.public_send("#{attribute}=", "example.com")
+            described_class.public_send(:"#{attribute}=", "example.com")
           end.to raise_error(/is not a valid URL/)
         end
       end
@@ -47,6 +47,74 @@ RSpec.describe Settings::General, type: :model do
       it "accepts the id of an existing published article" do
         article = create(:article, published: true)
         expect { described_class.feed_pinned_article_id = article.id }.not_to raise_error
+      end
+    end
+
+    describe "validating :default_content_language" do
+      it "does not accept languages that are not included" do
+        expect { described_class.default_content_language = "hahaha" }.to raise_error(ActiveRecord::RecordInvalid)
+      end
+
+      it "accepts languages that are included" do
+        expect { described_class.default_content_language = "ru" }.not_to raise_error
+      end
+    end
+
+    describe "validating :billboard_enabled_countries" do
+      it "does not accept non-hash or empty values" do
+        expect { described_class.billboard_enabled_countries = "string" }.to raise_error(ActiveRecord::RecordInvalid)
+        expect { described_class.billboard_enabled_countries = [] }.to raise_error(ActiveRecord::RecordInvalid)
+        expect { described_class.billboard_enabled_countries = {} }.to raise_error(ActiveRecord::RecordInvalid)
+      end
+
+      it "accepts any valid ISO 3166-2 codes as keys" do
+        countries = ISO3166::Country.codes.sample(5).index_with { :with_regions }
+
+        expect { described_class.billboard_enabled_countries = countries }.not_to raise_error
+      end
+
+      it "does not accept invalid ISO 3166-2 codes as keys" do
+        countries = { "XX" => :with_regions, "ZZ" => :with_regions }
+
+        expect { described_class.billboard_enabled_countries = countries }.to raise_error(ActiveRecord::RecordInvalid)
+      end
+
+      it "allows 'with_regions' and 'without_regions' marker as values to enable/disable region targeting" do
+        countries = { "CA" => :with_regions, "ZA" => :with_regions, "GB" => :without_regions }
+
+        expect { described_class.billboard_enabled_countries = countries }.not_to raise_error
+      end
+
+      it "does not allow arbitrary strings or symbols as values" do
+        countries = { "CA" => :with_regions, "US" => "string" }
+        other_countries = { "CA" => :with_regions, "US" => :string }
+
+        expect { described_class.billboard_enabled_countries = countries }.to raise_error(ActiveRecord::RecordInvalid)
+        expect do
+          described_class.billboard_enabled_countries = other_countries
+        end.to raise_error(ActiveRecord::RecordInvalid)
+      end
+    end
+
+    describe "validating algolia settings" do
+      it "only accepts strings" do
+        expect(described_class.get_setting(:algolia_application_id)[:type]).to eq(:string)
+        expect(described_class.get_setting(:algolia_api_key)[:type]).to eq(:string)
+        expect(described_class.get_setting(:algolia_search_only_api_key)[:type]).to eq(:string)
+      end
+    end
+
+    describe "::algolia_search_enabled?" do
+      it "returns true if all algolia settings are present" do
+        described_class.algolia_application_id = "app_id"
+        described_class.algolia_api_key = "api_key"
+        described_class.algolia_search_only_api_key = "search_only_api_key"
+        expect(described_class.algolia_search_enabled?).to be(true)
+      end
+
+      it "returns false if any or all of the algolia settings are missing" do
+        described_class.algolia_application_id = "app_id"
+        expect(described_class.algolia_search_enabled?).to be(false)
       end
     end
   end

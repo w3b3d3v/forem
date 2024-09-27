@@ -24,7 +24,7 @@ class RateLimitChecker
   class LimitReached < StandardError
     attr_reader :retry_after
 
-    def initialize(retry_after) # rubocop:disable Lint/MissingSuper
+    def initialize(retry_after)
       @retry_after = retry_after
     end
 
@@ -68,7 +68,7 @@ class RateLimitChecker
   private
 
   ACTION_LIMITERS.each_key do |action|
-    define_method("check_#{action}_limit") do
+    define_method(:"check_#{action}_limit") do
       Rails.cache.read(limit_cache_key(action), raw: true).to_i > action_rate_limit(action)
     end
   end

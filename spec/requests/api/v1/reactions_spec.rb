@@ -50,16 +50,15 @@ RSpec.describe "Api::V1::Reactions" do
 
       it "responds with expected JSON" do
         post api_reactions_toggle_path, params: params.to_json, headers: auth_header
-        expect(JSON.parse(response.body).keys).to contain_exactly("id", "result", "category", "reactable_type",
-                                                                  "reactable_id")
+        expect(response.parsed_body.keys).to contain_exactly("id", "result", "category", "reactable_type",
+                                                             "reactable_id")
       end
     end
 
     context "when toggled unsuccessfully" do
       let(:result) do
         ReactionHandler::Result.new.tap do |bad_result|
-          allow(bad_result).to receive(:success?).and_return(false)
-          allow(bad_result).to receive(:errors_as_sentence).and_return("Stuff was bad")
+          allow(bad_result).to receive_messages(success?: false, errors_as_sentence: "Stuff was bad")
         end
       end
 
@@ -103,16 +102,15 @@ RSpec.describe "Api::V1::Reactions" do
 
       it "responds with expected JSON" do
         post api_reactions_path, params: params.to_json, headers: auth_header
-        expect(JSON.parse(response.body).keys).to contain_exactly("id", "result", "category", "reactable_type",
-                                                                  "reactable_id")
+        expect(response.parsed_body.keys).to contain_exactly("id", "result", "category", "reactable_type",
+                                                             "reactable_id")
       end
     end
 
     context "when created unsuccessfully" do
       let(:result) do
         ReactionHandler::Result.new.tap do |bad_result|
-          allow(bad_result).to receive(:success?).and_return(false)
-          allow(bad_result).to receive(:errors_as_sentence).and_return("Stuff was bad")
+          allow(bad_result).to receive_messages(success?: false, errors_as_sentence: "Stuff was bad")
         end
       end
 

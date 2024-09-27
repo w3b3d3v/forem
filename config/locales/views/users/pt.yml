@@ -1,10 +1,15 @@
----
 pt:
   views:
     users:
       meta:
         og:
           title: "Perfil de %{user} — %{community}"
+      comments_locked_cta:
+        title: Quer se conectar com %{user}?
+        description: Crie uma conta para se conectar com %{user}. Você também pode fazer login abaixo se já tiver uma conta.
+        create_account: Criar Conta
+        already_have_an_account: Já tem uma conta?
+        sign_in: Entrar
       comments:
         all:
           one: Todos os %{count} comentários
@@ -68,16 +73,12 @@ pt:
         heading: Você tem certeza que deseja sair?
         'yes': Sim, faça logout
       block: Bloquear @%{user}
-      chat: Conversar
-      chat_with: Conversar com %{user}
-      close: Fechar modal
       details: "Detalhes do perfil de %{user}"
       dropdown: Ações do usuário
       email_icon: Endereço de e-mail
       empty: 404 perfil não encontrado
       flag: Marcar @%{user}
       follow: Seguir
-      guidelines: Regras de"%{user}:"
       joined:
         icon: Entrou
         text_html: "Entrou em\_%{date}"
@@ -89,6 +90,8 @@ pt:
         notice_html: Todas as interações privadas <b>must</b> cumpridas pelo %{code}.
         placeholder: Digite sua mensagem aqui...
         submit: Enviar
+      spam: Marcar @%{user} como spam
       social: "site %{service}"
       unflag: Desmarcar @%{user}
+      unspam: Definir @%{user} como em boa reputação
       website: Site pessoal

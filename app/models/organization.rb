@@ -1,11 +1,13 @@
 class Organization < ApplicationRecord
   include CloudinaryHelper
+  include PgSearch::Model
+  include AlgoliaSearchable
 
   include Images::Profile.for(:profile_image_url)
 
+  extend UniqueAcrossModels
   COLOR_HEX_REGEXP = /\A#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})\z/
   INTEGER_REGEXP = /\A\d+\z/
-  SLUG_REGEXP = /\A[a-zA-Z0-9\-_]+\z/
 
   acts_as_followable
 
@@ -17,14 +19,17 @@ class Organization < ApplicationRecord
   before_save :generate_secret
 
   after_save :bust_cache
+  after_save :generate_social_images
 
   after_update_commit :conditionally_update_articles
   after_destroy_commit :bust_cache
 
+  pg_search_scope :search_organizations, against: :name
+
   has_many :articles, dependent: :nullify
   has_many :collections, dependent: :nullify
   has_many :credits, dependent: :restrict_with_error
-  has_many :display_ads, dependent: :destroy
+  has_many :billboards, class_name: "Billboard", dependent: :destroy
   has_many :listings, dependent: :destroy
   has_many :notifications, dependent: :delete_all
   has_many :organization_memberships, dependent: :delete_all
@@ -42,14 +47,11 @@ class Organization < ApplicationRecord
   validates :cta_button_url, length: { maximum: 150 }, url: { allow_blank: true, no_local: true }
   validates :github_username, length: { maximum: 50 }
   validates :location, :email, length: { maximum: 64 }
-  validates :name, :summary, :url, :profile_image, presence: true
+  validates :name, :profile_image, presence: true
   validates :name, length: { maximum: 50 }
   validates :proof, length: { maximum: 1500 }
   validates :secret, length: { is: 100 }, allow_nil: true
   validates :secret, uniqueness: true
-  validates :slug, exclusion: { in: ReservedWords.all, message: :reserved_word }
-  validates :slug, format: { with: SLUG_REGEXP }, length: { in: 2..30 }
-  validates :slug, presence: true, uniqueness: { case_sensitive: false }
   validates :spent_credits_count, presence: true
   validates :summary, length: { maximum: 250 }
   validates :tag_line, length: { maximum: 60 }
@@ -59,16 +61,22 @@ class Organization < ApplicationRecord
   validates :unspent_credits_count, presence: true
   validates :url, length: { maximum: 200 }, url: { allow_blank: true, no_local: true }
 
-  validates :slug, unique_cross_model_slug: true, if: :slug_changed?
+  unique_across_models :slug, length: { in: 2..30 }
 
   mount_uploader :profile_image, ProfileImageUploader
-  mount_uploader :nav_image, ProfileImageUploader
-  mount_uploader :dark_nav_image, ProfileImageUploader
 
   alias_attribute :username, :slug
   alias_attribute :old_username, :old_slug
   alias_attribute :old_old_username, :old_old_slug
   alias_attribute :website_url, :url
+
+  def self.simple_name_match(query)
+    scope = order(:name)
+    query&.strip!
+    return scope if query.blank?
+
+    scope.where("name ILIKE ?", "%#{query}%")
+  end
 
   def self.integer_only
     I18n.t("models.organization.integer_only")
@@ -114,13 +122,28 @@ class Organization < ApplicationRecord
     organization_memberships.count == 1 && articles.count.zero? && credits.count.zero?
   end
 
+  def public_articles_count
+    articles.published.count
+  end
+
   # NOTE: We use Organization and User objects interchangeably. Since the former
   # don't have profiles we return self instead.
   def profile
     self
   end
 
+  def cached_base_subscriber?
+    false
+  end
+
   private
+
+  def generate_social_images
+    change = saved_change_to_attribute?(:name) || saved_change_to_attribute?(:profile_image)
+    return unless change && articles.published.size.positive?
+
+    Images::SocialImageWorker.perform_async(id, self.class.name)
+  end
 
   def evaluate_markdown
     self.cta_processed_html = MarkdownProcessor::Parser.new(cta_body_markdown).evaluate_limited_markdown

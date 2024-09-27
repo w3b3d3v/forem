@@ -1,4 +1,6 @@
 ENV["RAILS_ENV"] = "test"
+# Temporary workaround for Ruby 3.0.6 / CGI udpate
+ENV["APP_DOMAIN"] = "forem.test"
 require "knapsack_pro"
 require "simplecov"
 require "simplecov_json_formatter"
@@ -73,6 +75,7 @@ allowed_sites = [
   "selenium-release.storage.googleapis.com",
   "developer.microsoft.com/en-us/microsoft-edge/tools/webdriver",
   "api.knapsackpro.com",
+  ENV.fetch("CHROME_URL", nil),
 ]
 WebMock.disable_net_connect!(allow_localhost: true, allow: allowed_sites)
 
@@ -125,6 +128,12 @@ RSpec.configure do |config|
     end
   end
 
+  config.before(:each, :algolia) do
+    allow(Settings::General).to receive_messages(
+      algolia_application_id: "on", algolia_search_only_api_key: "on", algolia_api_key: "on",
+    )
+  end
+
   config.before(:suite) do
     # Set the TZ ENV variable with the current random timezone from zonebie
     # which we can then use to properly set the browser time for Capybara specs
@@ -150,7 +159,7 @@ RSpec.configure do |config|
     ex.run_with_retry retry: 3
   end
 
-  config.around(:each, throttle: true) do |example|
+  config.around(:each, :throttle) do |example|
     Rack::Attack.enabled = true
     example.run
     Rack::Attack.enabled = false
@@ -208,6 +217,9 @@ RSpec.configure do |config|
     stub_request(:post, "http://www.google-analytics.com/collect")
       .to_return(status: 200, body: "", headers: {})
 
+    stub_request(:post, /insights.algolia.io/)
+      .to_return(status: 200, body: "", headers: {})
+
     stub_request(:any, /robohash.org/)
       .with(headers:
             {
@@ -215,6 +227,15 @@ RSpec.configure do |config|
               "Accept-Encoding" => "gzip;q=1.0,deflate;q=0.6,identity;q=0.3",
               "User-Agent" => "Ruby"
             }).to_return(status: 200, body: "", headers: {})
+    stub_request(:get, %r{assets/icon})
+      .with(headers:
+            {
+              "Accept" => "*/*",
+              "Accept-Encoding" => "gzip;q=1.0,deflate;q=0.6,identity;q=0.3",
+              "User-Agent" => "Ruby"
+            }).to_return(status: 200, body: "", headers: {})
+    stub_request(:get, %r{assets/\d+(-\w+)?\.png})
+      .to_return(status: 200, body: "", headers: {})
 
     allow(Settings::Community).to receive(:community_description).and_return("Some description")
     allow(Settings::UserExperience).to receive(:public).and_return(true)

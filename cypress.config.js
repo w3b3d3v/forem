@@ -8,12 +8,13 @@ module.exports = defineConfig({
       return require('./cypress/plugins/index.js')(on, config);
     },
     screenshotsFolder: 'tmp/cypress_screenshots',
+    defaultCommandTimeout: 10000,
     trashAssetsBeforeRuns: false,
     video: false,
     retries: 3,
-    reporter: 'junit',
+    reporter: 'cypress-multi-reporters',
     reporterOptions: {
-      mochaFile: 'cypress/results/results-[hash].xml',
+      configFile: 'cypress/reporter-config.json',
     },
   },
 });

@@ -5,12 +5,6 @@ module Podcasts
 
     attr_reader(*ATTRIBUTES)
 
-    def initialize(attributes)
-      ATTRIBUTES.each do |key|
-        instance_variable_set("@#{key}", attributes[key])
-      end
-    end
-
     def self.from_item(item)
       new(
         title: item.title,
@@ -24,9 +18,15 @@ module Podcasts
       )
     end
 
+    def initialize(attributes)
+      ATTRIBUTES.each do |key|
+        instance_variable_set(:"@#{key}", attributes[key])
+      end
+    end
+
     def to_h
       ATTRIBUTES.index_with do |key|
-        instance_variable_get("@#{key}")
+        instance_variable_get(:"@#{key}")
       end
     end
   end

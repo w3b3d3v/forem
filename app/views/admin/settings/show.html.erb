@@ -9,7 +9,6 @@
 
   <%= render partial: "forms/api_tokens" %>
   <%= render partial: "forms/authentication" %>
-  <%= render partial: "forms/campaign" %>
   <%= render partial: "forms/community" %>
   <%= render partial: "forms/credits" %>
   <%= render partial: "forms/emails" %>
@@ -27,3 +26,5 @@
   <%= render partial: "forms/tags" %>
   <%= render partial: "forms/user_experience" %>
 </div>
+
+<%= javascript_include_tag "admin/convertUserIdsToUsernameInputs" %>

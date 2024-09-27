@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe "Notifications page", type: :system, js: true do
+RSpec.describe "Notifications page", :js do
   let(:alex) { create(:user) }
   let(:leslie) { create(:user) }
 
@@ -22,7 +22,7 @@ RSpec.describe "Notifications page", type: :system, js: true do
     visit "/"
     expect(page).to have_css("span#notifications-number", text: "1")
     click_link("notifications-link")
-    expect(page).not_to have_css("span#notifications-number", text: "1")
+    expect(page).to have_no_css("span#notifications-number", text: "1")
   end
 
   xcontext "when user is trusted" do
@@ -37,7 +37,7 @@ RSpec.describe "Notifications page", type: :system, js: true do
         click_button(emoji)
         expect(page).to have_css(".reacted")
         click_button(emoji)
-        expect(page).not_to have_css(".reacted")
+        expect(page).to have_no_css(".reacted")
       end
     end
 

@@ -8,9 +8,7 @@ RSpec.describe "Omniauth redirect", type: :request do
   let!(:mock_warden) { Warden::Proxy.new({}, Warden::Manager.new(nil)) }
 
   before do
-    allow(controller).to receive(:current_user).and_return(user)
-    allow(controller).to receive(:stored_location_for).and_return(nil)
-    allow(controller).to receive(:root_path).and_return("/new")
+    allow(controller).to receive_messages(current_user: user, stored_location_for: nil, root_path: "/new")
   end
 
   it "avoids i=i param in after_sign_in_path_for" do

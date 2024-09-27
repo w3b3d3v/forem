@@ -48,7 +48,6 @@ RSpec.describe Broadcasts::WelcomeNotification::Generator, type: :service do
       end.not_to change(user.notifications, :count)
     end
 
-    # rubocop:disable RSpec/ExampleLength
     # rubocop:disable RSpec/MultipleExpectations
     it "sends only 1 notification at a time, in the correct order" do
       user.update!(created_at: 1.day.ago)
@@ -171,7 +170,7 @@ RSpec.describe Broadcasts::WelcomeNotification::Generator, type: :service do
       it "generates and sends the appropriate broadcast for a #{provider_name} identity" do
         user = create(:user, :with_identity, identities: [provider_name], created_at: 1.day.ago)
         sidekiq_perform_enqueued_jobs { described_class.new(user.id).__send__(:send_authentication_notification) }
-        expect(user.notifications.first.notifiable).not_to eq(public_send("#{provider_name}_connect_broadcast"))
+        expect(user.notifications.first.notifiable).not_to eq(public_send(:"#{provider_name}_connect_broadcast"))
       end
     end
   end

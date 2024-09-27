@@ -55,16 +55,16 @@ RSpec.describe "Editor" do
     end
 
     context "when logged-in" do
-      it "returns json" do
+      before do
         sign_in user
+      end
+
+      it "returns json" do
         post "/articles/preview", headers: headers
         expect(response.media_type).to eq("application/json")
       end
-    end
 
-    context "with front matter" do
-      it "returns successfully" do
-        sign_in user
+      it "returns successfully with frontmatter" do
         article_body = <<~MARKDOWN
           ---
           ---

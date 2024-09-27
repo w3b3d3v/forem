@@ -48,13 +48,17 @@ namespace :admin do
 
       member do
         post "banish"
+        patch "reputation_modifier"
+        patch "max_score"
         post "export_data"
         post "full_delete"
         patch "user_status"
+        post "add_tag_mod_role"
         post "merge"
         delete "remove_identity"
         post "send_email"
         post "verify_email_ownership"
+        post "send_email_confirmation"
         patch "unlock_access"
         post "unpublish_all_articles"
       end
@@ -67,6 +71,9 @@ namespace :admin do
     end
 
     resources :gdpr_delete_requests, only: %i[index destroy]
+
+    resources :bulk_assign_role, only: %i[index]
+    post "/bulk_assign_role", to: "bulk_assign_role#assign_role"
   end
 
   scope :content_manager do
@@ -82,8 +89,8 @@ namespace :admin do
     resources :badge_achievements, only: %i[index destroy]
     get "/badge_achievements/award_badges", to: "badge_achievements#award"
     post "/badge_achievements/award_badges", to: "badge_achievements#award_badges"
-    resources :comments, only: [:index]
-    resources :organizations, only: %i[index show] do
+    resources :comments, only: %i[index show]
+    resources :organizations, only: %i[index show destroy] do
       member do
         patch "update_org_credits"
       end
@@ -102,7 +109,7 @@ namespace :admin do
   scope :customization do
     # We renamed the controller but don't want to change the route (yet)
     resource :config, controller: "settings"
-    resources :display_ads, only: %i[index edit update new create destroy]
+    resources :billboards
     resources :html_variants, only: %i[index edit update new create show destroy]
     resources :navigation_links, only: %i[index update create destroy]
     resources :pages, only: %i[index new create edit update destroy]

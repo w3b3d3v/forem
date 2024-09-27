@@ -31,7 +31,7 @@ module Articles
       def initialize(user:, config: {})
         @user = user
         DEFAULT_CONFIGURATION.each_pair do |key, value|
-          instance_variable_set("@#{key}", config.fetch(key, value))
+          instance_variable_set(:"@#{key}", config.fetch(key, value))
         end
       end
 
@@ -74,15 +74,15 @@ module Articles
       private
 
       def user_followed_tags
-        @user_followed_tags ||= (@user&.decorate&.cached_followed_tags || [])
+        @user_followed_tags ||= @user&.decorate&.cached_followed_tags || []
       end
 
       def user_following_org_ids
-        @user_following_org_ids ||= (@user&.cached_following_organizations_ids || [])
+        @user_following_org_ids ||= @user&.cached_following_organizations_ids || []
       end
 
       def user_following_users_ids
-        @user_following_users_ids ||= (@user&.cached_following_users_ids || [])
+        @user_following_users_ids ||= @user&.cached_following_users_ids || []
       end
     end
   end

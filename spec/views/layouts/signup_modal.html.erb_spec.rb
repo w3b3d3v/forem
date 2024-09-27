@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe "layouts/_signup_modal", type: :view do
+RSpec.describe "layouts/_signup_modal" do
   let(:tagline_text) { "the best community" }
 
   it "renders the tagline if it is set" do
@@ -12,6 +12,6 @@ RSpec.describe "layouts/_signup_modal", type: :view do
   it "does not render the tagline if it is not set" do
     allow(Settings::Community).to receive(:tagline).and_return(nil)
     render
-    expect(rendered).not_to have_text(tagline_text)
+    expect(rendered).to have_no_text(tagline_text)
   end
 end

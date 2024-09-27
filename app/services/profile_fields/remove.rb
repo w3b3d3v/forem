@@ -37,7 +37,7 @@ module ProfileFields
       return unless accessor.in?(store_attributes)
 
       Profile.undef_method(accessor)
-      Profile.undef_method("#{accessor}=")
+      Profile.undef_method(:"#{accessor}=")
     end
   end
 end
