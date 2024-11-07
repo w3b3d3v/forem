@@ -1030,7 +1030,7 @@ DEPENDENCIES
   omniauth-twitter (~> 1.4)
   parallel (~> 1.22)
   pg (~> 1.4)
-  pg_query (= 4.2.3)
+  pg_query (~> 4.2.3)
   pg_search (~> 2.3.6)
   pghero (~> 3.1)
   pry (~> 0.14)

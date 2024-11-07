@@ -35,8 +35,7 @@ Sidekiq.configure_server do |config|
   sidekiq_url = ApplicationConfig["REDIS_SIDEKIQ_URL"] || ApplicationConfig["REDIS_URL"]
   # On Heroku this configuration is overridden and Sidekiq will point at the redis
   # instance given by the ENV variable REDIS_PROVIDER
-  config.redis = { url: sidekiq_url,
-    ssl_params: { verify_mode: OpenSSL::SSL::VERIFY_NONE } }
+  config.redis = { url: sidekiq_url }
 
   config.server_middleware do |chain|
     chain.add Sidekiq::HoneycombMiddleware
@@ -57,9 +56,6 @@ Sidekiq.configure_server do |config|
 end
 
 Sidekiq.configure_client do |config|
-  sidekiq_url = ApplicationConfig["REDIS_SIDEKIQ_URL"] || ApplicationConfig["REDIS_URL"]
-  config.redis = { url: sidekiq_url,
-    ssl_params: { verify_mode: OpenSSL::SSL::VERIFY_NONE } }
   config.client_middleware do |chain|
     chain.add SidekiqUniqueJobs::Middleware::Client
   end

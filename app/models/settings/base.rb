@@ -162,8 +162,9 @@ module Settings
         ActiveSupport::HashWithIndifferentAccess,
         ActiveSupport::TimeWithZone,
         ActiveSupport::TimeZone,
+        Symbol,
       ]
-      YAML.load(self[:value], permitted_classes: permitted_classes) # rubocop:disable Security/YAMLLoad
+      YAML.safe_load(self[:value], permitted_classes: permitted_classes, aliases: true)
     end
 
     # set the settings's value, YAML encoded
