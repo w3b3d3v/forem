@@ -57,6 +57,9 @@ Sidekiq.configure_server do |config|
 end
 
 Sidekiq.configure_client do |config|
+  sidekiq_url = ApplicationConfig["REDIS_SIDEKIQ_URL"] || ApplicationConfig["REDIS_URL"]
+  config.redis = { url: sidekiq_url,
+    ssl_params: { verify_mode: OpenSSL::SSL::VERIFY_NONE } }
   config.client_middleware do |chain|
     chain.add SidekiqUniqueJobs::Middleware::Client
   end
