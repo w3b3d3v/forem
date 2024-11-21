@@ -4,6 +4,11 @@ FROM base as builder
 
 USER root
 
+# Atualizar certificados CA
+RUN update-ca-trust force-enable && \
+    dnf install -y ca-certificates && \
+    update-ca-trust extract
+
 RUN curl -sL https://dl.yarnpkg.com/rpm/yarn.repo -o /etc/yum.repos.d/yarn.repo && \
     dnf install --setopt install_weak_deps=false -y \
     ImageMagick iproute jemalloc less libcurl libcurl-devel \
@@ -57,6 +62,11 @@ FROM base as production
 
 USER root
 
+# Atualizar certificados CA
+RUN update-ca-trust force-enable && \
+    dnf install -y ca-certificates && \
+    update-ca-trust extract
+
 RUN dnf install --setopt install_weak_deps=false -y bash curl ImageMagick \
                 iproute jemalloc less libcurl \
                 postgresql tzdata nodejs libpq \
@@ -88,6 +98,11 @@ FROM builder AS testing
 
 USER root
 
+# Atualizar certificados CA
+RUN update-ca-trust force-enable && \
+    dnf install -y ca-certificates && \
+    update-ca-trust extract
+
 RUN dnf install --setopt install_weak_deps=false -y \
     chromium-headless chromedriver && \
     yum clean all && \
@@ -112,6 +127,13 @@ CMD ["bundle", "exec", "rails", "server", "-b", "0.0.0.0", "-p", "3000"]
 
 ## Development
 FROM builder AS development
+
+USER root
+
+# Atualizar certificados CA
+RUN update-ca-trust force-enable && \
+    dnf install -y ca-certificates && \
+    update-ca-trust extract
 
 COPY --chown="${APP_USER}":"${APP_USER}" ./spec "${APP_HOME}"/spec
 COPY --from=builder /usr/local/bin/dockerize /usr/local/bin/dockerize

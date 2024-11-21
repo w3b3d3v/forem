@@ -2,6 +2,14 @@
 
 set -e
 
+# Update CA certificates for heroku-22 (Ubuntu 22.04 LTS)
+if command -v update-ca-certificates > /dev/null; then
+  echo "Updating CA certificates..."
+  update-ca-certificates --fresh
+else
+  echo "Warning: Unable to update CA certificates. update-ca-certificates command not found."
+fi
+
 if [ -f tmp/pids/server.pid ]; then
   rm -f tmp/pids/server.pid
 fi

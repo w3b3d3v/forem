@@ -7,7 +7,7 @@ Datadog.configure do |c|
   c.tracing.instrument :rails, service_name: service_name
   c.tracing.instrument :active_support, cache_service: "#{service_name}-cache"
   c.tracing.instrument :active_record, service_name: "#{service_name}-db"
-  c.tracing.instrument :sidekiq, service_name: "#{service_name}-sidekiq"
+  c.tracing.instrument :sidekiq, service_name: "#{service_name}-sidekiq", client_service_name: "#{service_name}-sidekiq-client"
   c.tracing.instrument :concurrent_ruby
   c.tracing.instrument :excon, service_name: "#{service_name}-excon"
   c.tracing.instrument :httprb, service_name: "#{service_name}-httprb"
